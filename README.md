@@ -4,7 +4,7 @@
 `руддщ` → `hello`. Без подписки.
 
 [**Скачать последнюю версию**](https://github.com/shaadow0king/keyboard-switcher/releases/latest/download/Mistype.zip) ·
-нужна macOS 15 или новее и Mac на Apple Silicon (M1 и новее).
+нужна macOS 15 или новее, подходит любой Mac (Apple Silicon и Intel).
 
 ## Что умеет
 
@@ -20,9 +20,7 @@
 ## Установка
 
 1. Скачайте `Mistype.zip`, распакуйте и перенесите **Mistype** в «Программы».
-2. Откройте его. Mistype пока не подписан сертификатом Apple для раздачи, поэтому macOS скажет, что не может проверить
-   разработчика. Откройте **Системные настройки → Конфиденциальность и безопасность** и внизу нажмите
-   **«Всё равно открыть»** рядом с Mistype. Это нужно один раз.
+2. Откройте его. Программа подписана и проверена Apple, поэтому macOS откроет её без предупреждений.
 3. Mistype попросит доступ «Универсальный доступ»: без него macOS не даёт исправлять текст в других окнах. Окно
    подскажет, где его включить, и закроется само.
 
@@ -54,5 +52,5 @@ swift test          # тесты
 
 **English.** Mistype is a free Mac app that fixes text typed in the wrong keyboard layout (Russian ⇄ English) as you
 type, with one key to convert or undo, a list of apps where it stays off, and password fields skipped. What you type
-never leaves your Mac; it only checks GitHub for new versions. Requires macOS 15+ on Apple Silicon. On first open,
-allow it in System Settings → Privacy & Security → Open Anyway, then grant Accessibility.
+never leaves your Mac; it only checks GitHub for new versions. Requires macOS 15 or later, on Apple Silicon or Intel.
+Signed and notarized by Apple; on first open it asks for Accessibility.
