@@ -55,3 +55,4 @@
 "Same as macOS" = "Как в macOS";
 "Switcher needs to restart to change the language." = "Чтобы сменить язык, Switcher нужно перезапустить.";
 "Restart" = "Перезапустить";
+"Switcher, layout %@" = "Switcher, раскладка %@";

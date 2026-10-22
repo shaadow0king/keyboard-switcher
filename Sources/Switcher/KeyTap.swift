@@ -231,6 +231,14 @@ enum Spelling {
 }
 
 enum Layouts {
+    /// "RU" or "EN" for the active keyboard layout, nil for anything else.
+    static func currentCode() -> String? {
+        guard let source = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue(),
+              let raw = TISGetInputSourceProperty(source, kTISPropertyInputSourceLanguages) else { return nil }
+        let lang = (Unmanaged<CFArray>.fromOpaque(raw).takeUnretainedValue() as? [String])?.first ?? ""
+        return lang.hasPrefix("ru") ? "RU" : lang.hasPrefix("en") ? "EN" : nil
+    }
+
     /// Selects the first enabled keyboard layout whose main language is `lang`.
     static func select(_ lang: Lang) {
         let filter = [
