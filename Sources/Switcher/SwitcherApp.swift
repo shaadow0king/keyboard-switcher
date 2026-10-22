@@ -69,20 +69,26 @@ struct SettingsView: View {
 
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     @Published var status = "Starting…"
-    private var retry: Timer?
+    private var watchdog: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if KeyTap.shared.start() {
-            status = "Running"
-            return
-        }
-        // The tap can't be created until the user grants Accessibility; ask once, then wait for it.
-        status = "Needs Accessibility permission"
+        // Ask once; after that the watchdog starts the tap when permission arrives.
         AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
-        retry = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] timer in
-            guard KeyTap.shared.start() else { return }
-            timer.invalidate()
-            self?.status = "Running"
+        checkPermission()
+        // Also stops the tap within half a second if permission is revoked while running.
+        watchdog = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            self?.checkPermission()
         }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        KeyTap.shared.stop()
+    }
+
+    private func checkPermission() {
+        let running = AXIsProcessTrusted() && KeyTap.shared.start()
+        if !running { KeyTap.shared.stop() }
+        let new = running ? "Running" : "Needs Accessibility permission"
+        if status != new { status = new }
     }
 }

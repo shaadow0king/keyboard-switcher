@@ -1,6 +1,10 @@
 import AppKit
 import Carbon.HIToolbox
+import OSLog
 import SwitcherCore
+
+/// Key codes and events only, never the typed text. Read with: log stream --predicate 'subsystem == "local.switcher"'
+let log = Logger(subsystem: "local.switcher", category: "tap")
 
 /// Watches every key press: fixes a word when a space ends it, and runs the convert hotkey.
 final class KeyTap {
@@ -9,31 +13,63 @@ final class KeyTap {
     static let marker: Int64 = 0x5357_4954
 
     private var tap: CFMachPort?
+    /// Clicks only reset the word, so they go through a listen-only tap: the mouse never waits for us.
+    private var mouseTap: CFMachPort?
+    private var sources: [CFRunLoopSource] = []
     private var typed = TypedText()
     /// A modifier pressed with nothing else held; it fires as a hotkey if released before any other key.
     private var pendingModifier: Int?
     private let prefs = Prefs.shared
 
+    var isRunning: Bool { tap != nil }
+
     func start() -> Bool {
         if tap != nil { return true }
-        let mask: CGEventMask = 1 << CGEventType.keyDown.rawValue
-            | 1 << CGEventType.flagsChanged.rawValue
-            | 1 << CGEventType.leftMouseDown.rawValue
-            | 1 << CGEventType.rightMouseDown.rawValue
+        let keys: CGEventMask = 1 << CGEventType.keyDown.rawValue | 1 << CGEventType.flagsChanged.rawValue
+        let clicks: CGEventMask = 1 << CGEventType.leftMouseDown.rawValue | 1 << CGEventType.rightMouseDown.rawValue
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
-            eventsOfInterest: mask,
+            eventsOfInterest: keys,
             callback: { _, type, event, _ in
                 KeyTap.shared.handle(type, event).map { Unmanaged.passUnretained($0) }
             },
             userInfo: nil
         ) else { return false }
         self.tap = tap
-        CFRunLoopAddSource(CFRunLoopGetMain(), CFMachPortCreateRunLoopSource(nil, tap, 0), .commonModes)
-        CGEvent.tapEnable(tap: tap, enable: true)
+        mouseTap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap, place: .tailAppendEventTap, options: .listenOnly,
+            eventsOfInterest: clicks,
+            callback: { _, type, event, _ in
+                KeyTap.shared.handle(type, event).map { Unmanaged.passUnretained($0) }
+            },
+            userInfo: nil
+        )
+        for port in [tap, mouseTap].compactMap({ $0 }) {
+            let source = CFMachPortCreateRunLoopSource(nil, port, 0)!
+            CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+            sources.append(source)
+            CGEvent.tapEnable(tap: port, enable: true)
+        }
+        log.notice("tap started, hotkey=\(self.prefs.hotkey.label)")
         // Load both dictionaries now: a slow first lookup inside the tap gets the tap disabled.
         _ = Spelling.isWord("test", .en) || Spelling.isWord("тест", .ru)
         return true
+    }
+
+    /// Removes the taps. Must run as soon as Accessibility is revoked: an active tap
+    /// left behind without permission can freeze keyboard input for the whole Mac.
+    func stop() {
+        for port in [tap, mouseTap].compactMap({ $0 }) {
+            CGEvent.tapEnable(tap: port, enable: false)
+            CFMachPortInvalidate(port)
+        }
+        for source in sources { CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes) }
+        if tap != nil { log.notice("tap stopped") }
+        tap = nil
+        mouseTap = nil
+        sources = []
+        typed.reset()
+        pendingModifier = nil
     }
 
     /// Runs on the main thread for every event. Returning nil swallows the event.
@@ -61,6 +97,7 @@ final class KeyTap {
         let key = Int(event.getIntegerValueField(.keyboardEventKeycode))
         guard let modifier = Hotkey.modifierKeys[key] else { pendingModifier = nil; return }
         let held = event.flags.intersection(Hotkey.modifierMask.union(.maskSecondaryFn))
+        log.notice("flags key=\(key) held=\(held.rawValue, format: .hex) raw=\(event.flags.rawValue, format: .hex) pending=\(self.pendingModifier ?? -1)")
         if held == modifier.flag {
             pendingModifier = key  // pressed alone
         } else if held.isEmpty, pendingModifier == key {
@@ -128,6 +165,7 @@ final class KeyTap {
     /// The hotkey: retypes the word just typed in the other layout, or converts the selection.
     /// Pressing it again converts back, which also undoes an automatic fix.
     private func convert() {
+        log.notice("convert: secure=\(IsSecureEventInputEnabled()) target=\(self.typed.target?.text.count ?? -1) chars")
         guard !IsSecureEventInputEnabled() else { return }
         guard let target = typed.target else {
             Selection.convert()
