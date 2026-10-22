@@ -1,74 +1,42 @@
 import AppKit
-import MistypeCore
+import Combine
+import Sparkle
 
-/// Checks the GitHub repository in Info.plist (MistypeUpdatesRepo, "owner/name") for a newer release.
-/// Mistype's only network request: one GET to api.github.com, with nothing about the user or their typing.
-/// Installing stays manual: the release page opens and the user downloads the new build.
-// shortcut: no in-place install or signed update feed; upgrade to Sparkle once builds are Developer ID-signed.
+/// In-app updates through Sparkle: it reads appcast.xml (SUFeedURL in Info.plist) once a day, and when there's a
+/// newer version it offers to install it; the download is checked against the EdDSA key in Info.plist and the
+/// Developer ID signature, then Mistype is replaced in place and relaunched. Its only network requests are the feed
+/// and the update itself; Sparkle's system profiling stays off.
 final class Updates: ObservableObject {
     static let shared = Updates()
 
-    enum State: Equatable { case idle, checking, upToDate, available(String), failed }
-    @Published private(set) var state = State.idle
-    private(set) var releasePage: URL?
+    private let controller: SPUStandardUpdaterController
+    @Published private(set) var canCheck = false
 
-    private let defaults = UserDefaults.standard
-    private var timer: Timer?
+    private init() {
+        // Snapshots render the settings window offscreen; they must not start checking for updates.
+        let snapshot = CommandLine.arguments.contains("--snapshot")
+        controller = SPUStandardUpdaterController(startingUpdater: !snapshot, updaterDelegate: nil, userDriverDelegate: nil)
+        controller.updater.publisher(for: \.canCheckForUpdates).assign(to: &$canCheck)
 
-    static var repo: String? {
-        (Bundle.main.object(forInfoDictionaryKey: "MistypeUpdatesRepo") as? String).flatMap { $0.isEmpty ? nil : $0 }
+        // Versions before Sparkle kept their own on/off switch; carry a "no" over once.
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: "checkUpdates") as? Bool == false {
+            controller.updater.automaticallyChecksForUpdates = false
+        }
+        defaults.removeObject(forKey: "checkUpdates")
     }
 
     var checksAutomatically: Bool {
-        get { defaults.object(forKey: "checkUpdates") as? Bool ?? true }
-        set { defaults.set(newValue, forKey: "checkUpdates"); objectWillChange.send() }
+        get { controller.updater.automaticallyChecksForUpdates }
+        set {
+            controller.updater.automaticallyChecksForUpdates = newValue
+            objectWillChange.send()
+        }
     }
 
-    /// At launch and every few hours: checks if it's on and the last check was over a day ago.
-    func startSchedule() {
-        checkIfDue()
-        timer = Timer.scheduledTimer(withTimeInterval: 6 * 3600, repeats: true) { [weak self] _ in self?.checkIfDue() }
-    }
-
-    private func checkIfDue() {
-        let last = defaults.object(forKey: "lastUpdateCheck") as? Date ?? .distantPast
-        if checksAutomatically, Date().timeIntervalSince(last) > 24 * 3600 { check() }
-    }
-
+    /// Shows Sparkle's window: "You're up to date", or the new version with Install Update.
     func check() {
-        guard let repo = Self.repo, state != .checking,
-              let url = URL(string: "https://api.github.com/repos/\(repo)/releases/latest") else { return }
-        state = .checking
-        var request = URLRequest(url: url, timeoutInterval: 20)
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        URLSession.shared.dataTask(with: request) { data, response, _ in
-            let status = (response as? HTTPURLResponse)?.statusCode
-            let release = status == 200 ? data.flatMap { try? JSONDecoder().decode(Release.self, from: $0) } : nil
-            DispatchQueue.main.async { self.finish(release, noReleasesYet: status == 404) }
-        }.resume()
-    }
-
-    private func finish(_ release: Release?, noReleasesYet: Bool) {
-        defaults.set(Date(), forKey: "lastUpdateCheck")
-        if noReleasesYet {  // the repository exists but nothing is published yet
-            state = .upToDate
-            return
-        }
-        guard let release, let latest = Version(release.tag_name) else {
-            state = .failed
-            return
-        }
-        let current = Version(Feedback.version) ?? Version("0")!
-        releasePage = URL(string: release.html_url)
-        state = latest > current ? .available(latest.description) : .upToDate
-    }
-
-    func openReleasePage() {
-        if let releasePage { NSWorkspace.shared.open(releasePage) }
-    }
-
-    private struct Release: Decodable {
-        let tag_name: String
-        let html_url: String
+        NSApp.activate()  // a menu-bar app has to come forward, or the window opens behind others
+        controller.updater.checkForUpdates()
     }
 }

@@ -45,9 +45,6 @@ struct MenuView: View {
         if !app.hasPermission {
             Button("Give Permission…") { PermissionWindow.show(app) }
         }
-        if case .available(let version) = updates.state {
-            Button("Update Available: \(version)…") { updates.openReleasePage() }
-        }
         Text("Convert key: \(prefs.hotkey.displayLabel)")
         Button("Change Hotkey…") {
             prefs.settingsTab = .hotkeys
@@ -56,6 +53,8 @@ struct MenuView: View {
         }
         Divider()
         Toggle("Fix the layout as I type", isOn: $prefs.autoSwitch)
+        Button("Check for Updates…") { updates.check() }
+            .disabled(!updates.canCheck)
         Button("Settings…") { showSettings() }
         Button("Feedback and Ideas…") {
             prefs.settingsTab = .about
@@ -87,7 +86,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         ) { [weak self] _ in
             self?.layout = Layouts.currentCode()
         }
-        Updates.shared.startSchedule()
+        _ = Updates.shared  // starts Sparkle's daily check
         checkPermission()
         // Our own window instead of the bare system prompt: it says why, and closes when granted.
         if !hasPermission { PermissionWindow.show(self) }

@@ -41,30 +41,16 @@ struct AboutTab: View {
         Form {
             Section {
                 LabeledContent("Version") { Text(verbatim: Feedback.version).foregroundStyle(.primary) }
-                Text("Free. No subscription. Nothing you type leaves this Mac; Mistype only goes online to check for a new version.")
+                Text("Free. No subscription. Nothing you type leaves this Mac; Mistype only goes online to check for and download new versions.")
                     .fixedSize(horizontal: false, vertical: true)
             }
             Section("Updates") {
-                if Updates.repo == nil {
-                    Text("Updates aren't set up in this build.")
-                } else {
-                    Toggle("Check for updates automatically", isOn: Binding(
-                        get: { updates.checksAutomatically },
-                        set: { updates.checksAutomatically = $0 }
-                    ))
-                    HStack {
-                        Button("Check Now") { updates.check() }
-                            .disabled(updates.state == .checking)
-                        switch updates.state {
-                        case .idle: EmptyView()
-                        case .checking: ProgressView().controlSize(.small)
-                        case .upToDate: Text("You have the latest version.")
-                        case .failed: Text("Couldn't check. Try again later.")
-                        case .available(let version):
-                            Button("Download \(version)") { updates.openReleasePage() }
-                        }
-                    }
-                }
+                Toggle("Check for updates automatically", isOn: Binding(
+                    get: { updates.checksAutomatically },
+                    set: { updates.checksAutomatically = $0 }
+                ))
+                Button("Check for Updates…") { updates.check() }
+                    .disabled(!updates.canCheck)
             }
             Section("Feedback and ideas") {
                 Text("Found a bug, or missing something? Write to us.")

@@ -3,11 +3,13 @@
 # Sets the version, runs the tests, builds a universal app (Apple Silicon + Intel) signed with Developer ID,
 # has Apple notarize it, staples the ticket, checks Gatekeeper accepts it, packs it into a signed and notarized
 # disk image (tools/make-dmg.sh: drag Mistype to Applications), and creates release v<version> with Mistype.dmg in
-# the repository named in Info.plist (MistypeUpdatesRepo). Asks before publishing anything.
+# the repository named in Info.plist (MistypeUpdatesRepo). Then it writes appcast.xml (signed with the Sparkle key in
+# the keychain) and pushes it, so installed copies offer the update in-app. Asks before publishing anything.
 #
 # One-time setup on this Mac:
 #   - a "Developer ID Application" certificate in the keychain (Xcode → Settings → Accounts → Manage Certificates);
 #   - notary credentials: xcrun notarytool store-credentials mistype-notary --apple-id … --team-id …
+#   - the Sparkle update key: .build/artifacts/sparkle/Sparkle/bin/generate_keys --account mistype
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -37,8 +39,32 @@ rm -f "$ZIP"
 tools/make-dmg.sh build/Mistype.app "$DEVELOPER_ID" "$NOTARY_PROFILE"
 DMG=build/Mistype.dmg
 
+# The feed installed copies read. Sparkle compares sparkle:version (the build number) and checks the EdDSA signature.
+SIGNATURE=$(.build/artifacts/sparkle/Sparkle/bin/sign_update --account mistype "$DMG")
+cat > appcast.xml <<XML
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Mistype</title>
+    <item>
+      <title>Mistype $VERSION</title>
+      <pubDate>$(LC_ALL=C date -u "+%a, %d %b %Y %H:%M:%S +0000")</pubDate>
+      <sparkle:version>$BUILD</sparkle:version>
+      <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <link>https://github.com/$REPO/releases/tag/v$VERSION</link>
+      <enclosure url="https://github.com/$REPO/releases/download/v$VERSION/Mistype.dmg" $SIGNATURE type="application/octet-stream"/>
+    </item>
+  </channel>
+</rss>
+XML
+
 read -r -p "Publish v$VERSION ($DMG) as a release in $REPO? [y/N] " answer
 [ "$answer" = "y" ] || { echo "Not published. The version change in Info.plist is kept."; exit 0; }
 gh release create "v$VERSION" "$DMG" --repo "$REPO" --title "Mistype $VERSION" --generate-notes
+# Only now, with the download in place, tell installed copies about it.
+git add Info.plist appcast.xml
+git commit -m "Release $VERSION (build $BUILD)"
+git push
 echo "Published. Mistype checks for it within a day, or at once with Settings → About → Check Now."
 echo "Run ./build.sh afterwards to go back to your development build."

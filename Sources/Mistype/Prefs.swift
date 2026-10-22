@@ -120,7 +120,7 @@ final class Prefs: ObservableObject {
     private static func carryOverFromSwitcher(_ defaults: UserDefaults) {
         guard !defaults.bool(forKey: "carriedOverFromSwitcher"),
               let old = UserDefaults.standard.persistentDomain(forName: "local.switcher") else { return }
-        for key in ["autoSwitch", "convertHotkey", "rules", "exceptions", "checkUpdates", "AppleLanguages"] {
+        for key in ["autoSwitch", "convertHotkey", "rules", "exceptions", "AppleLanguages"] {
             if let value = old[key], defaults.object(forKey: key) == nil { defaults.set(value, forKey: key) }
         }
         defaults.set(true, forKey: "carriedOverFromSwitcher")

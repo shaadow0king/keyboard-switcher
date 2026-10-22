@@ -31,5 +31,11 @@
 	<string>im.gework@gmail.com</string>
 	<key>MistypeUpdatesRepo</key>
 	<string>shaadow0king/keyboard-switcher</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/shaadow0king/keyboard-switcher/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>YxJ/p+eRDD5h4+AxxxwDbCaZ/iZMeSL/X/9WfEH+c6s=</string>
 </dict>
 </plist>

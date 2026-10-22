@@ -29,13 +29,14 @@
 
 ## Приватность
 
-То, что вы печатаете, не сохраняется и не покидает ваш Mac. Единственный сетевой запрос — раз в день Mistype
-спрашивает у GitHub, вышла ли новая версия (выключается во вкладке «О программе»). Ни аналитики, ни отчётов о сбоях.
+То, что вы печатаете, не сохраняется и не покидает ваш Mac. В интернет Mistype выходит, только чтобы раз в день
+проверить, вышла ли новая версия (выключается во вкладке «О программе»), и скачать её, когда вы нажмёте «Установить».
+Ни аналитики, ни отчётов о сбоях, ни сведений о системе.
 
 ## Обновления
 
-Mistype сам проверяет новые версии и покажет в меню «Доступно обновление». Скачайте новую версию и замените ею старую
-в «Программах».
+Mistype сам проверяет новые версии и предложит установить новую: нажмите «Установить обновление», он скачает её,
+проверит подпись, заменит себя и перезапустится. Проверить вручную — меню → «Проверить обновления…».
 
 ## Отзывы и предложения
 
@@ -53,6 +54,6 @@ swift test          # тесты
 
 **English.** Mistype is a free Mac app that fixes text typed in the wrong keyboard layout (Russian ⇄ English) as you
 type, with one key to convert or undo, a list of apps where it stays off, and password fields skipped. What you type
-never leaves your Mac; it only checks GitHub for new versions. Requires macOS 15 or later, on Apple Silicon or Intel.
+never leaves your Mac; it only goes online to check for and install new versions. Requires macOS 15 or later, on Apple Silicon or Intel.
 Open Mistype.dmg, drag Mistype to Applications and open it from there; it's signed and notarized by Apple and asks
 for Accessibility on first open.
