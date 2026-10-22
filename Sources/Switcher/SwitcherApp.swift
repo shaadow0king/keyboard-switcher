@@ -38,11 +38,15 @@ struct MenuView: View {
     // Passed in: MenuBarExtra content doesn't receive the delegate as an environment object.
     @ObservedObject var app: AppDelegate
     @ObservedObject var prefs: Prefs
+    @ObservedObject var updates = Updates.shared
 
     var body: some View {
         Text(app.status)
         if !app.hasPermission {
             Button("Grant Permission…") { PermissionWindow.show(app) }
+        }
+        if case .available(let version) = updates.state {
+            Button("Update Available: \(version)…") { updates.openReleasePage() }
         }
         Text("Convert: \(prefs.hotkey.displayLabel)")
         Button("Change Hotkey…") {
@@ -53,6 +57,10 @@ struct MenuView: View {
         Divider()
         Toggle("Switch layout automatically", isOn: $prefs.autoSwitch)
         Button("Settings…") { showSettings() }
+        Button("Feedback and Ideas…") {
+            prefs.settingsTab = .about
+            showSettings()
+        }
         .keyboardShortcut(",")
         Divider()
         Button("Quit Switcher") { NSApp.terminate(nil) }
@@ -79,6 +87,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         ) { [weak self] _ in
             self?.layout = Layouts.currentCode()
         }
+        Updates.shared.startSchedule()
         checkPermission()
         // Our own window instead of the bare system prompt: it says why, and closes when granted.
         if !hasPermission { PermissionWindow.show(self) }

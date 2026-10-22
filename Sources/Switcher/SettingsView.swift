@@ -14,17 +14,23 @@ struct SettingsView: View {
             RulesTab(prefs: prefs)
                 .tabItem { Label("Rules", systemImage: "text.badge.xmark") }
                 .tag(SettingsTab.rules)
+            ExceptionsTab(prefs: prefs)
+                .tabItem { Label("Apps", systemImage: "app.badge") }
+                .tag(SettingsTab.exceptions)
             HotkeysTab(prefs: prefs)
                 .tabItem { Label("Hotkeys", systemImage: "command") }
                 .tag(SettingsTab.hotkeys)
+            AboutTab()
+                .tabItem { Label("About", systemImage: "info.circle") }
+                .tag(SettingsTab.about)
         }
-        .frame(width: 520, height: 380)
+        .frame(width: 520, height: 480)
         .onDisappear { prefs.recording = false }
     }
 }
 
 enum SettingsTab: Hashable {
-    case general, rules, hotkeys
+    case general, rules, exceptions, hotkeys, about
 }
 
 struct GeneralTab: View {
@@ -195,6 +201,62 @@ extension Rule.Match {
         case .prefix: String(localized: "Starts with")
         case .contains: String(localized: "Contains")
         }
+    }
+}
+
+struct ExceptionsTab: View {
+    @ObservedObject var prefs: Prefs
+    @State private var selection = Set<AppException.ID>()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Switcher stays off in these apps: no automatic fixes and no hotkey. Handy for terminals, code editors and games.")
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
+            List(prefs.exceptions, selection: $selection) { app in
+                HStack {
+                    Image(nsImage: NSWorkspace.shared.icon(forFile: app.path))
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .accessibilityHidden(true)
+                    Text(app.name).lineLimit(1).truncationMode(.middle).help(app.bundleID)
+                }
+            }
+            .onDeleteCommand { remove() }
+            .overlay {
+                if prefs.exceptions.isEmpty {
+                    ContentUnavailableView("No apps yet", systemImage: "app.dashed",
+                        description: Text("Add an app where switching gets in the way."))
+                }
+            }
+            HStack(spacing: 0) {
+                Button(action: add) { Image(systemName: "plus") }
+                    .accessibilityLabel("Add app")
+                Button(action: remove) { Image(systemName: "minus") }
+                    .accessibilityLabel("Remove app")
+                    .disabled(selection.isEmpty)
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding()
+    }
+
+    private func add() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.application]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.allowsMultipleSelection = true
+        panel.prompt = String(localized: "Add")
+        guard panel.runModal() == .OK else { return }
+        for app in panel.urls.compactMap(AppException.init(url:))
+        where !prefs.exceptions.contains(where: { $0.bundleID == app.bundleID }) {
+            prefs.exceptions.append(app)
+        }
+    }
+
+    private func remove() {
+        prefs.exceptions.removeAll { selection.contains($0.id) }
+        selection.removeAll()
     }
 }
 

@@ -21,6 +21,9 @@ final class KeyTap {
     private var pendingModifier: Int?
     private let prefs = Prefs.shared
     private var appObserver: NSObjectProtocol?
+    /// Kept up to date by a workspace notification, so the tap never asks AppKit per key press.
+    private var frontmost = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+    private var isExcepted: Bool { prefs.exceptions.contains { $0.bundleID == frontmost } }
     private var inPasswordField = false
 
     var isRunning: Bool { tap != nil }
@@ -54,7 +57,9 @@ final class KeyTap {
         }
         appObserver = appObserver ?? NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
-        ) { [weak self] _ in
+        ) { [weak self] note in
+            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            self?.frontmost = app?.bundleIdentifier
             self?.typed.reset()  // another app is frontmost: the cursor is somewhere else now
         }
         log.notice("tap started, hotkey=\(self.prefs.hotkey.label)")
@@ -93,11 +98,15 @@ final class KeyTap {
             }
             return event
         case .flagsChanged:
-            flagsChanged(event)
+            if !isExcepted || prefs.recording { flagsChanged(event) }
             return event
         case .keyDown:
             pendingModifier = nil
             if event.getIntegerValueField(.eventSourceUserData) == Self.marker { return event }
+            if isExcepted && !prefs.recording {
+                typed.reset()
+                return event
+            }
             return keyDown(event)
         default:
             pendingModifier = nil

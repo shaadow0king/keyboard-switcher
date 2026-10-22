@@ -23,6 +23,10 @@
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
+	<key>SwitcherUpdatesRepo</key>
+	<string></string>
+	<key>SwitcherFeedbackEmail</key>
+	<string></string>
 	<key>LSUIElement</key>
 	<true/>
 </dict>

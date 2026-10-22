@@ -28,6 +28,11 @@ enum Snapshot {
         }
         shot("S03-general", .general)
         shot("S07-hotkeys", .hotkeys)
+        shot("S06-apps-empty", .exceptions)
+        prefs.exceptions = ["/System/Applications/Utilities/Terminal.app", "/System/Applications/TextEdit.app"]
+            .compactMap { AppException(url: URL(fileURLWithPath: $0)) }
+        shot("S06-apps-filled", .exceptions)
+        shot("S13-about", .about)
         shot("S04-rules-empty", .rules)
         prefs.rules = [
             Rule(text: "ghbdtn"),
