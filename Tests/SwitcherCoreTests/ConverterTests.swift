@@ -30,3 +30,13 @@ private func isWord(_ s: String, _: Lang) -> Bool { words.contains(s) }
     #expect(Detector.fix("ghbdtn1", isWord: isWord) == nil)
     #expect(Detector.fix("a@ghbdtn", isWord: isWord) == nil)
 }
+
+// BUG-002: shifted digit-row punctuation sits on other keys in the Russian layout.
+@Test func convertsDigitRowPunctuation() {
+    #expect(Converter.convert("ghbdtn^") == "привет:")
+    #expect(Converter.convert("ghbdtn$") == "привет;")
+    #expect(Converter.convert("ghbdtn&") == "привет?")
+    #expect(Converter.convert("@ghbdtn@") == "\"привет\"")
+    #expect(Converter.convert("#1") == "№1")
+    #expect(Converter.convert("руддщ?") == "hello&")
+}

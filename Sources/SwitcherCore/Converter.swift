@@ -8,8 +8,8 @@ public enum Lang: Sendable {
 /// Maps text between the US/ABC and Russian keyboards by key position.
 public enum Converter {
     // shortcut: positions of "Russian – PC"; the Mac "Russian" layout moves ё and some punctuation, add a table if you use it.
-    static let en = Array("`qwertyuiop[]asdfghjkl;'zxcvbnm,./~QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>?")
-    static let ru = Array("ёйцукенгшщзхъфывапролджэячсмитьбю.ЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,")
+    static let en = Array("`qwertyuiop[]asdfghjkl;'zxcvbnm,./~QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>?@#$^&")
+    static let ru = Array("ёйцукенгшщзхъфывапролджэячсмитьбю.ЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,\"№;:?")
     static let enToRu = Dictionary(uniqueKeysWithValues: zip(en, ru))
     static let ruToEn = Dictionary(uniqueKeysWithValues: zip(ru, en))
 
@@ -31,9 +31,13 @@ public enum Detector {
               !word.contains("@"), !word.contains("://") else { return nil }
         let from = Converter.lang(of: word)
         let converted = Converter.convert(word)
+        // The spell checker takes any all-caps word for an acronym and accepts it,
+        // so CAPS LOCK typing is checked in lowercase.
+        let allCaps = word == word.uppercased() && word != word.lowercased()
+        let check = allCaps ? { isWord($0.lowercased(), $1) } : isWord
         guard converted.contains(where: \.isLetter),
-              !isWord(word, from),
-              isWord(converted, from.other) else { return nil }
+              !check(word, from),
+              check(converted, from.other) else { return nil }
         return converted
     }
 }
