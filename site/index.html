@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mistype — исправляет текст, набранный не в той раскладке</title>
+<meta name="description" content="Бесплатная программа для Mac: замечает ghbdtn и превращает в «привет». Без подписки. Ничего из напечатанного не покидает ваш Mac.">
+<style>
+  :root {
+    --brand: #0B7A61;
+    --on-brand: #FFFFFF;
+    --bg: #FFFFFF;
+    --surface: #F3F6F5;
+    --text: #141716;
+    --muted: #3D4643;
+    --border: #DCE3E0;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand: #2FC79F;
+      --on-brand: #141716;
+      --bg: #141716;
+      --surface: #1D2220;
+      --text: #EEF2F0;
+      --muted: #C2CCC8;
+      --border: #2E3633;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  section:first-child { border-top: 0; }
+  h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 16px; }
+  h2 { font-size: clamp(24px, 4vw, 32px); line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 20px; }
+  h3 { font-size: 18px; margin: 0 0 6px; }
+  p { margin: 0 0 12px; }
+  .lead { font-size: 20px; color: var(--muted); max-width: 40em; }
+  .muted { color: var(--muted); }
+  .hero { padding-top: 72px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; margin-bottom: 40px; }
+  .brand .key {
+    display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9px;
+    background: var(--brand); color: var(--on-brand); font-size: 18px; font-weight: 700;
+  }
+  .button {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--brand); color: var(--on-brand);
+    padding: 14px 22px; border-radius: 12px; font-weight: 600; text-decoration: none;
+    transition: transform 160ms var(--ease-out);
+  }
+  .button:active { transform: scale(0.97); }
+  .button:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 28px 0 8px; }
+  .req { font-size: 15px; color: var(--muted); }
+
+  /* The demo: explains the one thing Mistype does, so it may take its time. */
+  .demo {
+    margin: 40px 0 0; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 28px 32px; max-width: 560px;
+  }
+  .demo .label { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .typed { font: 28px/1.3 ui-monospace, "SF Mono", Menlo, monospace; position: relative; height: 1.3em; }
+  .typed span { position: absolute; left: 0; top: 0; }
+  .typed .wrong { animation: wrong 4.5s var(--ease-out) infinite; }
+  .typed .right { opacity: 0; animation: right 4.5s var(--ease-out) infinite; }
+  @keyframes wrong {
+    0%, 42% { opacity: 1; filter: blur(0); }
+    50%, 100% { opacity: 0; filter: blur(4px); }
+  }
+  @keyframes right {
+    0%, 44% { opacity: 0; filter: blur(4px); transform: translateY(4px); }
+    54%, 92% { opacity: 1; filter: blur(0); transform: translateY(0); }
+    100% { opacity: 0; filter: blur(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .typed .wrong { animation: none; opacity: 0; }
+    .typed .right { animation: none; opacity: 1; }
+  }
+
+  .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+  .steps li { counter-increment: step; position: relative; padding-left: 48px; margin-bottom: 18px; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 0; width: 32px; height: 32px; border-radius: 50%;
+    display: grid; place-items: center; background: var(--brand); color: var(--on-brand); font-weight: 700;
+  }
+  kbd {
+    font: 15px ui-monospace, "SF Mono", Menlo, monospace; padding: 1px 7px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg);
+  }
+  figure { margin: 0; }
+  figure img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); display: block; }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .price { font-size: 44px; font-weight: 700; letter-spacing: -0.02em; }
+  details { border-top: 1px solid var(--border); padding: 14px 0; }
+  details:last-child { border-bottom: 1px solid var(--border); }
+  summary { cursor: pointer; font-weight: 600; }
+  summary:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+  details p { margin-top: 10px; }
+  footer { max-width: 960px; margin: 0 auto; padding: 32px 20px 56px; color: var(--muted); font-size: 15px; }
+  a { color: var(--brand); }
+</style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div class="brand"><span class="key" aria-hidden="true">П</span>Mistype</div>
+    <h1>Напечатали не в той раскладке? Mistype исправит.</h1>
+    <p class="lead">Программа для Mac сама замечает, что вместо «привет» получилось «ghbdtn», и перепечатывает слово правильно. Бесплатно и без подписки.</p>
+    <div class="cta">
+      <a class="button" href="https://github.com/shaadow0king/keyboard-switcher/releases/latest">Скачать для Mac</a>
+      <span class="req">macOS 15 и новее · Mac на Apple Silicon (M1 и новее)</span>
+    </div>
+    <div class="demo" role="img" aria-label="Пример: набранное ghbdtn превращается в привет">
+      <div class="label">Вы печатаете на английской раскладке</div>
+      <div class="typed"><span class="wrong">ghbdtn&nbsp;</span><span class="right">привет&nbsp;</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Знакомо?</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Платить каждый год за переключение раскладки</h3>
+        <p class="muted">Чаще всего на похожие программы жалуются из-за подписки. А из России их ещё и не всегда получается оплатить.</p>
+      </div>
+      <div class="card">
+        <h3>Перестаёт работать после обновления macOS</h3>
+        <p class="muted">Пропускает слова, теряет буквы, переключает, когда не просили, или вообще не запускается на новых Mac.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Как это работает</h2>
+    <ol class="steps">
+      <li><strong>Скачайте и откройте Mistype.</strong> Он живёт в строке меню и показывает текущую раскладку: RU или EN.</li>
+      <li><strong>Разрешите ему видеть ввод.</strong> Окно подскажет, где это включить. Это нужно один раз.</li>
+      <li><strong>Печатайте как обычно.</strong> Слово в неправильной раскладке исправится, как только вы нажмёте пробел. Нужно поправить вручную или вернуть как было — нажмите <kbd>⌥</kbd>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Что внутри</h2>
+    <div class="grid">
+      <div class="card"><h3>Бесплатно, без подписки</h3><p class="muted">Все возможности сразу. Нечего продлевать и нечего отменять.</p></div>
+      <div class="card"><h3>Не мешает в коде</h3><p class="muted">Выберите приложения, где Mistype молчит: Терминал, редакторы кода, игры.</p></div>
+      <div class="card"><h3>Ваш ввод остаётся у вас</h3><p class="muted">Ничего из напечатанного не сохраняется и не уходит в интернет. Поля паролей пропускаются.</p></div>
+      <div class="card"><h3>Своя клавиша</h3><p class="muted">Конвертация последнего слова или выделенного текста — по <kbd>⌥</kbd> или по любой другой клавише.</p></div>
+      <div class="card"><h3>Короткие слова тоже</h3><p class="muted">«z ljvf» станет «я дома»: предлоги и союзы исправляются вместе со следующим словом.</p></div>
+      <div class="card"><h3>Сделан для новых Mac</h3><p class="muted">Родная программа для Apple Silicon, проверена на свежей macOS. Интерфейс на русском и английском.</p></div>
+    </div>
+    <div class="grid" style="margin-top:28px">
+      <figure>
+        <picture>
+          <source srcset="img/S06-apps-filled-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="img/S06-apps-filled.png" alt="Настройки Mistype: список приложений, где он выключен — Терминал и TextEdit" width="1040" height="760" loading="lazy">
+        </picture>
+        <figcaption>Приложения, где Mistype выключен</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source srcset="img/S04-rules-filled-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="img/S04-rules-filled.png" alt="Настройки Mistype: правила — слова, которые никогда не переводятся автоматически" width="1040" height="760" loading="lazy">
+        </picture>
+        <figcaption>Слова, которые не нужно трогать</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Цена</h2>
+    <div class="card" style="max-width:420px">
+      <div class="price">0 ₽</div>
+      <p>Всё включено. Без подписки, пробного периода и аккаунта.</p>
+      <a class="button" href="https://github.com/shaadow0king/keyboard-switcher/releases/latest">Скачать для Mac</a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Вопросы</h2>
+    <details>
+      <summary>Зачем Mistype разрешение «Универсальный доступ»?</summary>
+      <p>Чтобы видеть, какие клавиши вы нажимаете, и перепечатать слово в другой раскладке. Без этого разрешения macOS не даёт ни одной программе исправлять текст в чужих окнах.</p>
+    </details>
+    <details>
+      <summary>Что он отправляет в интернет?</summary>
+      <p>Только запрос «какая последняя версия?» на GitHub, раз в день. Отключается во вкладке «О программе». То, что вы печатаете, никуда не уходит и не сохраняется.</p>
+    </details>
+    <details>
+      <summary>macOS пишет, что не может проверить разработчика. Что делать?</summary>
+      <p>Mistype пока не подписан сертификатом Apple для раздачи. Откройте его один раз так: Системные настройки → Конфиденциальность и безопасность → внизу «Всё равно открыть» рядом с Mistype.</p>
+    </details>
+    <details>
+      <summary>Работает ли на Mac с Intel?</summary>
+      <p>Пока нет: только Mac на Apple Silicon (M1 и новее) с macOS 15 или новее.</p>
+    </details>
+    <details>
+      <summary>Какие раскладки поддерживаются?</summary>
+      <p>Русская (вариант «Русская – ПК») и английская (ABC или US). Другие языки пока не поддерживаются.</p>
+    </details>
+    <details>
+      <summary>Как обновлять?</summary>
+      <p>Mistype сам проверяет новые версии и покажет в меню «Доступно обновление». Скачайте новую версию и замените ею старую в папке «Программы».</p>
+    </details>
+  </section>
+
+  <section>
+    <h2>Хватит перепечатывать «ghbdtn».</h2>
+    <div class="cta">
+      <a class="button" href="https://github.com/shaadow0king/keyboard-switcher/releases/latest">Скачать Mistype бесплатно</a>
+    </div>
+  </section>
+</main>
+<footer>
+  Mistype · бесплатная программа для macOS · <a href="https://github.com/shaadow0king/keyboard-switcher">исходный код и версии на GitHub</a>
+</footer>
+</body>
+</html>
