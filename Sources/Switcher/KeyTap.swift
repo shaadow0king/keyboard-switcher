@@ -83,8 +83,14 @@ final class KeyTap {
     private func handle(_ type: CGEventType, _ event: CGEvent) -> CGEvent? {
         switch type {
         case .tapDisabledByTimeout, .tapDisabledByUserInput:
-            if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
             typed.reset()
+            // Turn it back on only with a live grant; otherwise remove it (not from inside its own callback).
+            if Focus.accessibilityWorks() {
+                if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
+            } else {
+                log.notice("tap disabled without permission: removing it")
+                DispatchQueue.main.async { KeyTap.shared.stop() }
+            }
             return event
         case .flagsChanged:
             flagsChanged(event)

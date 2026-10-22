@@ -2,6 +2,19 @@ import AppKit
 import ApplicationServices
 
 enum Focus {
+    /// Whether Accessibility is really granted right now. AXIsProcessTrusted() alone isn't enough:
+    /// after Switcher is removed from the Accessibility list while running, it kept answering yes,
+    /// the key tap stayed in place without permission, and the Mac's keyboard input froze (BUG-007).
+    /// A real Accessibility call is refused at once (kAXErrorCannotComplete / APIDisabled).
+    static func accessibilityWorks() -> Bool {
+        guard AXIsProcessTrusted() else { return false }
+        let system = AXUIElementCreateSystemWide()
+        AXUIElementSetMessagingTimeout(system, 0.2)
+        var value: CFTypeRef?
+        let result = AXUIElementCopyAttributeValue(system, kAXFocusedApplicationAttribute as CFString, &value)
+        return result == .success || result == .noValue
+    }
+
     /// Whether the focused field is a password field. Read through Accessibility, because
     /// a web page's password field doesn't always turn on macOS secure input.
     static func isPasswordField() -> Bool {

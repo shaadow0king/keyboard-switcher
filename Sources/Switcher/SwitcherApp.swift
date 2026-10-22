@@ -92,10 +92,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         KeyTap.shared.stop()
     }
 
+    /// Checks in a row that found no permission; the guide window waits for a few, so one slow answer
+    /// from a hung app doesn't pop it up. The tap itself is removed on the first one.
+    private var misses = 0
+
     private func checkPermission() {
-        let running = AXIsProcessTrusted() && KeyTap.shared.start()
+        let granted = Focus.accessibilityWorks()
+        misses = granted ? 0 : misses + 1
+        if !granted, KeyTap.shared.isRunning { log.notice("permission check failed: removing the tap") }
+        let running = granted && KeyTap.shared.start()
         if !running { KeyTap.shared.stop() }
-        if running != hasPermission {
+        if running != hasPermission, running || misses >= 3 || watchdog == nil {
             hasPermission = running
             if running {
                 // Let the "Switcher is on" line show for a moment, then get out of the way.
