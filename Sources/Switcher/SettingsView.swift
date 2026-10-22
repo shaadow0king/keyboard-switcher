@@ -165,9 +165,57 @@ extension Rule.Match {
 
 struct ExceptionsTab: View {
     @ObservedObject var prefs: Prefs
+    @State private var selection = Set<AppException.ID>()
 
     var body: some View {
-        NotBuiltYet(what: "Apps where Switcher stays off")
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Switcher stays off in these apps: no automatic fixes and no hotkey. Handy for terminals, code editors and games.")
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
+            List(prefs.exceptions, selection: $selection) { app in
+                HStack {
+                    Image(nsImage: NSWorkspace.shared.icon(forFile: app.path))
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .accessibilityHidden(true)
+                    Text(app.name).lineLimit(1).truncationMode(.middle).help(app.bundleID)
+                }
+            }
+            .onDeleteCommand { remove() }
+            .overlay {
+                if prefs.exceptions.isEmpty {
+                    ContentUnavailableView("No apps yet", systemImage: "app.dashed",
+                        description: Text("Add an app where switching gets in the way."))
+                }
+            }
+            HStack(spacing: 0) {
+                Button(action: add) { Image(systemName: "plus") }
+                    .accessibilityLabel("Add app")
+                Button(action: remove) { Image(systemName: "minus") }
+                    .accessibilityLabel("Remove app")
+                    .disabled(selection.isEmpty)
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding()
+    }
+
+    private func add() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.application]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.allowsMultipleSelection = true
+        panel.prompt = "Add"
+        guard panel.runModal() == .OK else { return }
+        for app in panel.urls.compactMap(AppException.init(url:))
+        where !prefs.exceptions.contains(where: { $0.bundleID == app.bundleID }) {
+            prefs.exceptions.append(app)
+        }
+    }
+
+    private func remove() {
+        prefs.exceptions.removeAll { selection.contains($0.id) }
+        selection.removeAll()
     }
 }
 

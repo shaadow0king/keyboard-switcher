@@ -30,6 +30,9 @@ enum Snapshot {
         ]
         shot("S04-rules-filled", .rules)
         shot("S06-apps-empty", .exceptions)
+        prefs.exceptions = ["/System/Applications/Utilities/Terminal.app", "/System/Applications/TextEdit.app"]
+            .compactMap { AppException(url: URL(fileURLWithPath: $0)) }
+        shot("S06-apps-filled", .exceptions)
         shot("S10-sounds", .sounds)
     }
 
