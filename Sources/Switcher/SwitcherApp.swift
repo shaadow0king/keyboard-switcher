@@ -27,6 +27,7 @@ struct MenuView: View {
         Text(app.status)
         Text("Convert: \(prefs.hotkey.label)")
         Button("Change Hotkey…") {
+            prefs.settingsTab = .hotkeys
             prefs.recording = true
             openWindow(id: "settings")
             NSApp.activate()
@@ -41,34 +42,6 @@ struct MenuView: View {
         Divider()
         Button("Quit Switcher") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
-    }
-}
-
-struct SettingsView: View {
-    @ObservedObject var prefs: Prefs
-
-    var body: some View {
-        Form {
-            Toggle("Switch layout automatically", isOn: $prefs.autoSwitch)
-            LabeledContent("Convert hotkey") {
-                HStack {
-                    Text(prefs.recording ? "Press a key…" : prefs.hotkey.label)
-                        .foregroundStyle(prefs.recording ? .secondary : .primary)
-                    Button(prefs.recording ? "Cancel" : "Change…") { prefs.recording.toggle() }
-                }
-            }
-            Text("""
-                Retypes the word you just typed in the other layout, or the selected text. \
-                Press it again to switch back; that also undoes an automatic fix.
-                Use a modifier on its own (⌥), a key with ⌘ ⌃ or ⌥, or F1–F19. Esc cancels.
-                """)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .formStyle(.grouped)
-        .frame(width: 440)
-        .onDisappear { prefs.recording = false }
     }
 }
 

@@ -79,6 +79,7 @@ final class Prefs: ObservableObject {
     }
     /// While true, the next hotkey-worthy key press becomes the hotkey instead of acting.
     @Published var recording = false
+    @Published var settingsTab = SettingsTab.general
 
     private init() {
         autoSwitch = defaults.object(forKey: "autoSwitch") as? Bool ?? true
