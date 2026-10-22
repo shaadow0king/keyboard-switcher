@@ -43,7 +43,7 @@ struct GeneralTab: View {
 
     var body: some View {
         Form {
-            Toggle("Fix the layout as I type", isOn: $prefs.autoSwitch)
+            Toggle("Fix the layout automatically as I type", isOn: $prefs.autoSwitch)
             Toggle("Open Mistype when you log in", isOn: Binding(
                 get: { loginStatus == .enabled },
                 set: setLaunchAtLogin

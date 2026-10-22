@@ -82,7 +82,7 @@
 "On" = "Включено";
 "Needs permission to see typing" = "Нужно разрешение видеть ввод";
 "Paused while %@ protects your typing" = "Пауза, пока %@ защищает ввод";
-"Fix the layout as I type" = "Исправлять раскладку при наборе";
+"Fix the layout automatically as I type" = "Автоматически исправлять раскладку при наборе";
 "Convert key: %@" = "Клавиша конвертации: %@";
 "Give Permission…" = "Выдать разрешение…";
 "Mistype needs to see what you type" = "Mistype нужно видеть, что вы печатаете";

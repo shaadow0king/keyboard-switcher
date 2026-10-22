@@ -52,7 +52,7 @@ struct MenuView: View {
             showSettings()
         }
         Divider()
-        Toggle("Fix the layout as I type", isOn: $prefs.autoSwitch)
+        Toggle("Fix the layout automatically as I type", isOn: $prefs.autoSwitch)
         Button("Check for Updates…") { updates.check() }
             .disabled(!updates.canCheck)
         Button("Settings…") { showSettings() }
