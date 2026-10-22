@@ -66,5 +66,5 @@ gh release create "v$VERSION" "$DMG" --repo "$REPO" --title "Mistype $VERSION" -
 git add Info.plist appcast.xml
 git commit -m "Release $VERSION (build $BUILD)"
 git push
-echo "Published. Mistype checks for it within a day, or at once with Settings → About → Check Now."
+echo "Published. Installed copies (0.5 and later) offer it within a day, or at once with Check for Updates…"
 echo "Run ./build.sh afterwards to go back to your development build."
