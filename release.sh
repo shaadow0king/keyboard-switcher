@@ -15,7 +15,8 @@ BUILD=$(( $(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" Info.plist) + 1 
 
 swift test
 ./build.sh
-ZIP="build/Mistype-$VERSION.zip"
+# Always the same file name, so .../releases/latest/download/Mistype.zip (the site's Download button) is the newest build.
+ZIP="build/Mistype.zip"
 rm -f "$ZIP"
 ditto -c -k --keepParent build/Mistype.app "$ZIP"
 
