@@ -13,14 +13,22 @@ enum Selection {
     /// Native text views let us read and replace the selection directly.
     private static func convertWithAccessibility() -> Bool {
         var focused: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(AXUIElementCreateSystemWide(), kAXFocusedUIElementAttribute as CFString, &focused) == .success,
-              let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return false }
+        let focusResult = AXUIElementCopyAttributeValue(AXUIElementCreateSystemWide(), kAXFocusedUIElementAttribute as CFString, &focused)
+        guard focusResult == .success, let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else {
+            log.notice("selection AX: no focused element (\(focusResult.rawValue))")
+            return false
+        }
         let element = focused as! AXUIElement
         var selected: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, kAXSelectedTextAttribute as CFString, &selected) == .success,
-              let text = selected as? String, !text.isEmpty else { return false }
+        let readResult = AXUIElementCopyAttributeValue(element, kAXSelectedTextAttribute as CFString, &selected)
+        guard readResult == .success, let text = selected as? String, !text.isEmpty else {
+            log.notice("selection AX: no selected text (\(readResult.rawValue))")
+            return false
+        }
         let converted = Converter.convert(text)
-        guard AXUIElementSetAttributeValue(element, kAXSelectedTextAttribute as CFString, converted as CFString) == .success else { return false }
+        let writeResult = AXUIElementSetAttributeValue(element, kAXSelectedTextAttribute as CFString, converted as CFString)
+        log.notice("selection AX: \(text.count) chars, write result \(writeResult.rawValue)")
+        guard writeResult == .success else { return false }
         Layouts.select(Converter.lang(of: converted))
         return true
     }
@@ -39,6 +47,7 @@ enum Selection {
         Typist.command(kVK_ANSI_C)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             // Nothing copied means nothing was selected: leave the clipboard alone.
+            log.notice("selection clipboard: copied=\(board.changeCount != before) chars=\(board.string(forType: .string)?.count ?? -1)")
             guard board.changeCount != before, let text = board.string(forType: .string), !text.isEmpty else { return }
             let converted = Converter.convert(text)
             board.clearContents()

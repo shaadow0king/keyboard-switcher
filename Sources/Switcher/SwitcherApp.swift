@@ -26,6 +26,11 @@ struct MenuView: View {
     var body: some View {
         Text(app.status)
         Text("Convert: \(prefs.hotkey.label)")
+        Button("Change Hotkey…") {
+            prefs.recording = true
+            openWindow(id: "settings")
+            NSApp.activate()
+        }
         Divider()
         Toggle("Switch layout automatically", isOn: $prefs.autoSwitch)
         Button("Settings…") {
