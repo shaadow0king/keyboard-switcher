@@ -12,7 +12,6 @@ public struct TypedText {
 
     public init() {}
 
-    public var lastWord: String { done.last?.text ?? "" }
     public var spaces: String { done.last?.spaces ?? "" }
 
     public mutating func type(_ text: String) {

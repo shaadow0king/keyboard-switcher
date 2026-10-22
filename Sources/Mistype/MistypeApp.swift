@@ -76,10 +76,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var watchdog: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if let i = CommandLine.arguments.firstIndex(of: "--snapshot"), i + 1 < CommandLine.arguments.count {
-            Snapshot.run(to: URL(fileURLWithPath: CommandLine.arguments[i + 1]))
-            exit(0)
-        }
         layoutObserver = DistributedNotificationCenter.default().addObserver(
             forName: NSNotification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
             object: nil, queue: .main
