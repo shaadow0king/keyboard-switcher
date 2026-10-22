@@ -3,13 +3,13 @@
   <channel>
     <title>Mistype</title>
     <item>
-      <title>Mistype 0.6</title>
-      <pubDate>Thu, 22 Oct 2026 21:35:33 +0000</pubDate>
-      <sparkle:version>7</sparkle:version>
-      <sparkle:shortVersionString>0.6</sparkle:shortVersionString>
+      <title>Mistype 0.7</title>
+      <pubDate>Thu, 22 Oct 2026 21:51:56 +0000</pubDate>
+      <sparkle:version>8</sparkle:version>
+      <sparkle:shortVersionString>0.7</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-      <link>https://github.com/shaadow0king/keyboard-switcher/releases/tag/v0.6</link>
-      <enclosure url="https://github.com/shaadow0king/keyboard-switcher/releases/download/v0.6/Mistype.dmg" sparkle:edSignature="sJCDuHc0PODRiNnvWWqw/V4P290CqmJx/zmfWcIihRLK3anaYvzS7aCF5Ao2c6LmbjjlhLz/nSBfmFi8HApqCA==" length="2442662" type="application/octet-stream"/>
+      <link>https://github.com/shaadow0king/keyboard-switcher/releases/tag/v0.7</link>
+      <enclosure url="https://github.com/shaadow0king/keyboard-switcher/releases/download/v0.7/Mistype.dmg" sparkle:edSignature="+mpnbNeXpawM4TWuI9R9xL4LagdoN7qvAgWjlxfw9gPIrFaqVL6z1kODYwbJrf3omcsNwCsqAulQ3T4itSHZDg==" length="2433542" type="application/octet-stream"/>
     </item>
   </channel>
 </rss>
