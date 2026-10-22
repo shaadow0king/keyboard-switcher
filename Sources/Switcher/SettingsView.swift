@@ -66,7 +66,7 @@ struct HotkeysTab: View {
             LabeledContent("Convert") {
                 HStack {
                     Text(prefs.recording ? "Press a key…" : prefs.hotkey.label)
-                        .foregroundStyle(prefs.recording ? .secondary : .primary)
+                        .italic(prefs.recording)
                     Button(prefs.recording ? "Cancel" : "Change…") { prefs.recording.toggle() }
                 }
             }
@@ -76,7 +76,6 @@ struct HotkeysTab: View {
                 Use a modifier on its own (⌥), a key with ⌘ ⌃ or ⌥, or F1–F19. Esc cancels.
                 """)
                 .font(.callout)
-                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .formStyle(.grouped)
