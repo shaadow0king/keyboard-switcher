@@ -56,3 +56,4 @@
 "Switcher needs to restart to change the language." = "Чтобы сменить язык, Switcher нужно перезапустить.";
 "Restart" = "Перезапустить";
 "Switcher, layout %@" = "Switcher, раскладка %@";
+"Paused: %@ has secure keyboard input on" = "Пауза: в %@ включена защита ввода с клавиатуры";

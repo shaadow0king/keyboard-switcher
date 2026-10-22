@@ -26,11 +26,25 @@ import Testing
     #expect(t.target?.text == "abc")
 }
 
-@Test func newWordReplacesTheOldOne() {
+@Test func newWordBecomesTheTargetAndOldOnesAreKept() {
     var t = TypedText()
     t.type("one"); _ = t.space(); t.type("t")
     #expect(t.target?.text == "t")
-    #expect(t.lastWord == "")
+    #expect(t.done.map(\.text) == ["one"])
+}
+
+@Test func keepsOnlyTheLastFewWords() {
+    var t = TypedText()
+    for i in 0..<20 { t.type("w\(i)"); _ = t.space() }
+    #expect(t.done.count == 8)
+    #expect(t.done.last?.text == "w19")
+}
+
+@Test func replaceDoneRetypesAnEarlierWord() {
+    var t = TypedText()
+    t.type("z"); _ = t.space(); t.type("ljvf"); _ = t.space()
+    t.replaceDone(0, with: "я")
+    #expect(t.done.map(\.text) == ["я", "ljvf"])
 }
 
 @Test func replaceTargetTogglesBack() {

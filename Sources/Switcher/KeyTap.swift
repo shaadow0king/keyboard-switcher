@@ -21,6 +21,7 @@ final class KeyTap {
     private var pendingModifier: Int?
     private let prefs = Prefs.shared
     private var appObserver: NSObjectProtocol?
+    private var inPasswordField = false
 
     var isRunning: Bool { tap != nil }
 
@@ -139,7 +140,7 @@ final class KeyTap {
             return nil
         }
 
-        if IsSecureEventInputEnabled() || !event.flags.isDisjoint(with: [.maskCommand, .maskControl, .maskAlternate]) {
+        if !event.flags.isDisjoint(with: [.maskCommand, .maskControl, .maskAlternate]) {
             typed.reset()
             return event
         }
@@ -149,12 +150,8 @@ final class KeyTap {
             typed.backspace()
             return event
         case kVK_Space:
-            guard let ended = typed.space(), prefs.autoSwitch, !prefs.rules.block(ended),
-                  let fixed = Detector.fix(ended, isWord: Spelling.isWord) else { return event }
-            Typist.replace(count: ended.count, with: fixed + " ")
-            typed.replaceTarget(with: fixed)
-            Layouts.select(Converter.lang(of: fixed))
-            return nil
+            guard let ended = typed.space() else { return event }
+            return fixEnded(ended) ? nil : event
         default:
             break
         }
@@ -164,15 +161,53 @@ final class KeyTap {
             typed.reset()
             return event
         }
+        // Asked once per word: a password is never kept, not even in memory.
+        if typed.word.isEmpty { inPasswordField = Focus.isPasswordField() }
+        if inPasswordField {
+            typed.reset()
+            return event
+        }
         typed.type(text)
         return event
+    }
+
+    /// A space just ended `ended` (the space itself is held back). Fixes the word if it's in the wrong layout,
+    /// together with the short words right before it that were typed in the same wrong layout.
+    /// Returns true when it retyped, and the held space is part of the retyped text.
+    private func fixEnded(_ ended: String) -> Bool {
+        guard prefs.autoSwitch, !prefs.rules.block(ended) else { return false }
+        guard let fixed = Detector.fix(ended, isWord: Spelling.isWord)
+            ?? Detector.fixShort(ended, after: nil, isWord: Spelling.isWord) else { return false }
+        let to = Converter.lang(of: fixed)
+        let last = typed.done.count - 1
+        var first = last
+        var retyped: [Int: String] = [:]
+        while first > 0 {
+            let earlier = typed.done[first - 1].text
+            guard !prefs.rules.block(earlier),
+                  let short = Detector.fixShort(earlier, after: to, isWord: Spelling.isWord) else { break }
+            first -= 1
+            retyped[first] = short
+        }
+        var erase = ended.count
+        var text = ""
+        for i in first..<last {
+            let word = typed.done[i]
+            erase += word.text.count + word.spaces.count
+            text += (retyped[i] ?? word.text) + word.spaces
+            typed.replaceDone(i, with: retyped[i] ?? word.text)
+        }
+        Typist.replace(count: erase, with: text + fixed + " ")
+        typed.replaceTarget(with: fixed)
+        Layouts.select(to)
+        return true
     }
 
     /// The hotkey: retypes the word just typed in the other layout, or converts the selection.
     /// Pressing it again converts back, which also undoes an automatic fix.
     private func convert() {
-        log.notice("convert: secure=\(IsSecureEventInputEnabled()) target=\(self.typed.target?.text.count ?? -1) chars")
-        guard !IsSecureEventInputEnabled() else { return }
+        log.notice("convert: target=\(self.typed.target?.text.count ?? -1) chars")
+        guard !Focus.isPasswordField() else { return }
         guard let target = typed.target else {
             Selection.convert()
             return

@@ -97,7 +97,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private func checkPermission() {
         let running = AXIsProcessTrusted() && KeyTap.shared.start()
         if !running { KeyTap.shared.stop() }
-        let new = running ? String(localized: "Running") : String(localized: "Needs Accessibility permission")
+        let new = if !running {
+            String(localized: "Needs Accessibility permission")
+        } else if let owner = Focus.secureInputOwner() {
+            String(localized: "Paused: \(owner) has secure keyboard input on")
+        } else {
+            String(localized: "Running")
+        }
         if status != new { status = new }
     }
 }
