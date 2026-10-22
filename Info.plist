@@ -28,6 +28,6 @@
 	<key>SwitcherFeedbackEmail</key>
 	<string>im.gework@gmail.com</string>
 	<key>SwitcherUpdatesRepo</key>
-	<string>shaadow0king/keyboard-switcher-releases</string>
+	<string>shaadow0king/keyboard-switcher</string>
 </dict>
 </plist>
