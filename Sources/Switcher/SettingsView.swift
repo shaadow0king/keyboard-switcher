@@ -1,3 +1,4 @@
+import ServiceManagement
 import SwiftUI
 import SwitcherCore
 
@@ -34,12 +35,39 @@ enum SettingsTab: Hashable {
 
 struct GeneralTab: View {
     @ObservedObject var prefs: Prefs
+    /// Read from the system each time: the user can also change it in System Settings → Login Items.
+    @State private var loginStatus = SMAppService.mainApp.status
+    @State private var loginError: String?
 
     var body: some View {
         Form {
             Toggle("Switch layout automatically", isOn: $prefs.autoSwitch)
+            Toggle("Open Switcher when you log in", isOn: Binding(
+                get: { loginStatus == .enabled },
+                set: setLaunchAtLogin
+            ))
+            if loginStatus == .requiresApproval {
+                LabeledContent("Allow Switcher in System Settings → General → Login Items.") {
+                    Button("Open") { SMAppService.openSystemSettingsLoginItems() }
+                }
+            }
+            if let loginError {
+                Label(loginError, systemImage: "exclamationmark.triangle")
+                    .symbolRenderingMode(.multicolor)
+            }
         }
         .formStyle(.grouped)
+        .onAppear { loginStatus = SMAppService.mainApp.status }
+    }
+
+    private func setLaunchAtLogin(_ on: Bool) {
+        do {
+            if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
+            loginError = nil
+        } catch {
+            loginError = "Couldn't change this: \(error.localizedDescription)"
+        }
+        loginStatus = SMAppService.mainApp.status
     }
 }
 
