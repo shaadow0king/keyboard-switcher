@@ -2,16 +2,17 @@ import AppKit
 import ApplicationServices
 import SwiftUI
 
-/// S02: explains why Switcher needs Accessibility, opens the right pane, and closes itself once it's granted.
-/// An AppKit window (not a SwiftUI scene) so the app delegate can open and close it without a view's openWindow.
-final class PermissionWindow {
-    static let shared = PermissionWindow()
+/// The app's windows. Plain AppKit rather than SwiftUI scenes: in a menu-bar-only app, SwiftUI's openWindow
+/// can leave the window behind other apps until a second click, and the app delegate can't call it at all.
+final class AppWindow {
+    static let settings = AppWindow()
+    static let permission = AppWindow()
     private var window: NSWindow?
 
-    func show(_ app: AppDelegate) {
+    func show(title: String, _ content: () -> some View) {
         if window == nil {
-            let window = NSWindow(contentViewController: NSHostingController(rootView: PermissionView(app: app)))
-            window.title = String(localized: "Switcher Permission")
+            let window = NSWindow(contentViewController: NSHostingController(rootView: content()))
+            window.title = title
             window.styleMask = [.titled, .closable]
             window.isReleasedWhenClosed = false
             window.center()
@@ -19,12 +20,22 @@ final class PermissionWindow {
         }
         NSApp.activate()
         window?.makeKeyAndOrderFront(nil)
+        window?.orderFrontRegardless()  // in front even if macOS hasn't finished activating the app
     }
 
     func close() {
         window?.close()
         window = nil
     }
+}
+
+/// S02: explains why Switcher needs Accessibility, opens the right pane, and closes itself once it's granted.
+enum PermissionWindow {
+    static func show(_ app: AppDelegate) {
+        AppWindow.permission.show(title: String(localized: "Switcher Permission")) { PermissionView(app: app) }
+    }
+
+    static func close() { AppWindow.permission.close() }
 
     /// Adds Switcher to the Accessibility list (macOS also shows its own short alert) and opens that pane,
     /// so the user only has to turn the switch on.
@@ -70,7 +81,7 @@ struct PermissionView: View {
             .accessibilityElement(children: .combine)
             HStack {
                 Spacer()
-                Button("Later") { PermissionWindow.shared.close() }
+                Button("Later") { PermissionWindow.close() }
                     .keyboardShortcut(.cancelAction)
                 Button("Open System Settings") { PermissionWindow.openSettings() }
                     .keyboardShortcut(.defaultAction)

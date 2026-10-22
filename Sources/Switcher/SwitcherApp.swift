@@ -12,11 +12,6 @@ struct SwitcherApp: App {
         } label: {
             MenuBarLabel(app: app)
         }
-        Window("Switcher Settings", id: "settings") {
-            SettingsView(prefs: .shared)
-        }
-        .windowResizability(.contentSize)
-        .defaultLaunchBehavior(.suppressed)
     }
 }
 
@@ -35,30 +30,29 @@ struct MenuBarLabel: View {
     }
 }
 
+func showSettings() {
+    AppWindow.settings.show(title: String(localized: "Switcher Settings")) { SettingsView(prefs: .shared) }
+}
+
 struct MenuView: View {
     // Passed in: MenuBarExtra content doesn't receive the delegate as an environment object.
     @ObservedObject var app: AppDelegate
     @ObservedObject var prefs: Prefs
-    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Text(app.status)
         if !app.hasPermission {
-            Button("Grant Permission…") { PermissionWindow.shared.show(app) }
+            Button("Grant Permission…") { PermissionWindow.show(app) }
         }
         Text("Convert: \(prefs.hotkey.displayLabel)")
         Button("Change Hotkey…") {
             prefs.settingsTab = .hotkeys
             prefs.recording = true
-            openWindow(id: "settings")
-            NSApp.activate()
+            showSettings()
         }
         Divider()
         Toggle("Switch layout automatically", isOn: $prefs.autoSwitch)
-        Button("Settings…") {
-            openWindow(id: "settings")
-            NSApp.activate()
-        }
+        Button("Settings…") { showSettings() }
         .keyboardShortcut(",")
         Divider()
         Button("Quit Switcher") { NSApp.terminate(nil) }
@@ -87,7 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
         checkPermission()
         // Our own window instead of the bare system prompt: it says why, and closes when granted.
-        if !hasPermission { PermissionWindow.shared.show(self) }
+        if !hasPermission { PermissionWindow.show(self) }
         // Also stops the tap within half a second if permission is revoked while running.
         watchdog = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             self?.checkPermission()
@@ -105,9 +99,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             hasPermission = running
             if running {
                 // Let the "Switcher is on" line show for a moment, then get out of the way.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { PermissionWindow.shared.close() }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { PermissionWindow.close() }
             } else if watchdog != nil {
-                PermissionWindow.shared.show(self)  // revoked while running
+                PermissionWindow.show(self)  // revoked while running
             }
         }
         let new = if !running {
