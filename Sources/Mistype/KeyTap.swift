@@ -249,7 +249,10 @@ enum Typist {
     /// Erases `count` characters before the cursor and types `text` in their place.
     static func replace(count: Int, with text: String) {
         let source = CGEventSource(stateID: .privateState)  // a Shift the user still holds doesn't leak in
-        for _ in 0..<count { press(source, key: CGKeyCode(kVK_Delete)) }
+        // An inline autocomplete is selected text after the cursor; one extra Delete clears it first,
+        // or the first letter of the word stays behind ("gпароли" in Spotlight).
+        let erase = count + (Focus.hasSelection() ? 1 : 0)
+        for _ in 0..<erase { press(source, key: CGKeyCode(kVK_Delete)) }
         for unit in text.utf16 {
             press(source, key: CGKeyCode(unit == 0x20 ? kVK_Space : 0), unicode: [unit])
         }

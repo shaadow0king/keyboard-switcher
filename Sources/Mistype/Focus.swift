@@ -18,14 +18,30 @@ enum Focus {
     /// Whether the focused field is a password field. Read through Accessibility, because
     /// a web page's password field doesn't always turn on macOS secure input.
     static func isPasswordField() -> Bool {
+        guard let focused = focusedElement() else { return false }
+        var subrole: CFTypeRef?
+        AXUIElementCopyAttributeValue(focused, kAXSubroleAttribute as CFString, &subrole)
+        return subrole as? String == kAXSecureTextFieldSubrole
+    }
+
+    /// Whether the focused field has selected text. Right after typing that's an inline autocomplete
+    /// (Spotlight, address bars): the first Delete removes it instead of a letter.
+    static func hasSelection() -> Bool {
+        guard let focused = focusedElement() else { return false }
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(focused, kAXSelectedTextRangeAttribute as CFString, &value) == .success,
+              let value, CFGetTypeID(value) == AXValueGetTypeID() else { return false }
+        var range = CFRange()
+        return AXValueGetValue(value as! AXValue, .cfRange, &range) && range.length > 0
+    }
+
+    private static func focusedElement() -> AXUIElement? {
         let system = AXUIElementCreateSystemWide()
         AXUIElementSetMessagingTimeout(system, 0.05)  // a hung app must not stall the key tap
         var focused: CFTypeRef?
         guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
-              let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return false }
-        var subrole: CFTypeRef?
-        AXUIElementCopyAttributeValue(focused as! AXUIElement, kAXSubroleAttribute as CFString, &subrole)
-        return subrole as? String == kAXSecureTextFieldSubrole
+              let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return nil }
+        return (focused as! AXUIElement)
     }
 
     /// The app that turned on secure keyboard input (a password prompt, Terminal's Secure Keyboard Entry),
