@@ -94,3 +94,4 @@
 "Mistype needs to see what you type" = "Mistype нужно видеть, что вы печатаете";
 "To spot a word typed in the wrong layout and fix it, Mistype watches your key presses. Nothing you type is saved or leaves this Mac, and password fields are skipped." = "Чтобы заметить слово, набранное не в той раскладке, и исправить его, Mistype следит за нажатиями клавиш. Ничего из напечатанного не сохраняется и не покидает этот Mac, а поля паролей пропускаются.";
 "Free. No subscription. Nothing you type leaves this Mac; Mistype only goes online to check for a new version." = "Бесплатно. Без подписки. Ничего из напечатанного не покидает этот Mac: Mistype выходит в интернет, только чтобы проверить новую версию.";
+"First drag Mistype into the Applications folder and open it from there, then give the permission." = "Сначала перетащите Mistype в папку «Программы» и откройте его оттуда, потом выдайте разрешение.";

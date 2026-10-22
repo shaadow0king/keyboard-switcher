@@ -48,6 +48,13 @@ enum PermissionWindow {
 struct PermissionView: View {
     @ObservedObject var app: AppDelegate
 
+    /// Opened straight from the disk image or from Downloads, macOS runs a read-only copy from a random folder
+    /// (App Translocation), and a permission granted in System Settings never reaches it.
+    private var notInstalled: Bool {
+        let path = Bundle.main.bundlePath
+        return path.contains("/AppTranslocation/") || path.hasPrefix("/Volumes/")
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
@@ -68,7 +75,12 @@ struct PermissionView: View {
             }
             .fixedSize(horizontal: false, vertical: true)
             Group {
-                if app.hasPermission {
+                if notInstalled && !app.hasPermission {
+                    Label("First drag Mistype into the Applications folder and open it from there, then give the permission.",
+                          systemImage: "exclamationmark.triangle.fill")
+                        .symbolRenderingMode(.multicolor)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if app.hasPermission {
                     Label("Mistype is on.", systemImage: "checkmark.circle.fill")
                         .symbolRenderingMode(.multicolor)
                 } else {
