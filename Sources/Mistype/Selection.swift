@@ -1,7 +1,7 @@
 import AppKit
 import ApplicationServices
 import Carbon.HIToolbox
-import SwitcherCore
+import MistypeCore
 
 /// Converts the selected text in the frontmost app to the other layout.
 enum Selection {

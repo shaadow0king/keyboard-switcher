@@ -1,5 +1,5 @@
 import Testing
-@testable import SwitcherCore
+@testable import MistypeCore
 
 @Test func parsesTags() {
     #expect(Version("v1.2.3")?.description == "1.2.3")

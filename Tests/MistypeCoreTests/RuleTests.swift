@@ -1,5 +1,5 @@
 import Testing
-@testable import SwitcherCore
+@testable import MistypeCore
 
 @Test func wholeWordMatchesInEitherLayout() {
     let rule = Rule(text: "ghbdtn")

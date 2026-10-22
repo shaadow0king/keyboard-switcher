@@ -3,7 +3,7 @@ import ApplicationServices
 
 enum Focus {
     /// Whether Accessibility is really granted right now. AXIsProcessTrusted() alone isn't enough:
-    /// after Switcher is removed from the Accessibility list while running, it kept answering yes,
+    /// after Mistype is removed from the Accessibility list while running, it kept answering yes,
     /// the key tap stayed in place without permission, and the Mac's keyboard input froze (BUG-007).
     /// A real Accessibility call is refused at once (kAXErrorCannotComplete / APIDisabled).
     static func accessibilityWorks() -> Bool {
@@ -29,7 +29,7 @@ enum Focus {
     }
 
     /// The app that turned on secure keyboard input (a password prompt, Terminal's Secure Keyboard Entry),
-    /// or nil. While it's on, macOS hides key presses from every other app, Switcher included.
+    /// or nil. While it's on, macOS hides key presses from every other app, Mistype included.
     static func secureInputOwner() -> String? {
         guard let session = CGSessionCopyCurrentDictionary() as? [String: Any],
               let pid = session["kCGSSessionSecureInputPID"] as? pid_t, pid != getpid() else { return nil }

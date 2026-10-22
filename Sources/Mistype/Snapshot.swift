@@ -1,12 +1,12 @@
 import AppKit
 import SwiftUI
-import SwitcherCore
+import MistypeCore
 
-/// `Switcher --snapshot <dir>`: renders each settings screen to PNG offscreen, for visual checks.
+/// `Mistype --snapshot <dir>`: renders each settings screen to PNG offscreen, for visual checks.
 /// Uses its own throwaway defaults and never starts the key tap.
 enum Snapshot {
     static func run(to dir: URL) {
-        let suite = "local.switcher.snapshot"
+        let suite = "io.github.shaadow0king.mistype.snapshot"
         UserDefaults().removePersistentDomain(forName: suite)
         defer { UserDefaults().removePersistentDomain(forName: suite) }
         let prefs = Prefs(defaults: UserDefaults(suiteName: suite)!)

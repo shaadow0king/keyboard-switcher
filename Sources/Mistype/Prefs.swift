@@ -1,6 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
-import SwitcherCore
+import MistypeCore
 
 /// A user-chosen key: either a modifier pressed and released alone (⌥), or a key with modifiers (⌃⌥Space).
 struct Hotkey: Codable, Equatable {
@@ -109,10 +109,21 @@ final class Prefs: ObservableObject {
     /// Another `defaults` only for snapshots, so they never touch the user's settings.
     init(defaults: UserDefaults) {
         self.defaults = defaults
+        if defaults == .standard { Self.carryOverFromSwitcher(defaults) }
         autoSwitch = defaults.object(forKey: "autoSwitch") as? Bool ?? true
         hotkey = defaults.data(forKey: "convertHotkey").flatMap { try? JSONDecoder().decode(Hotkey.self, from: $0) } ?? .option
         rules = defaults.data(forKey: "rules").flatMap { try? JSONDecoder().decode([Rule].self, from: $0) } ?? []
         exceptions = defaults.data(forKey: "exceptions").flatMap { try? JSONDecoder().decode([AppException].self, from: $0) } ?? []
+    }
+
+    /// The app was called Switcher, with the bundle ID local.switcher; its settings move over once.
+    private static func carryOverFromSwitcher(_ defaults: UserDefaults) {
+        guard !defaults.bool(forKey: "carriedOverFromSwitcher"),
+              let old = UserDefaults.standard.persistentDomain(forName: "local.switcher") else { return }
+        for key in ["autoSwitch", "convertHotkey", "rules", "exceptions", "checkUpdates", "AppleLanguages"] {
+            if let value = old[key], defaults.object(forKey: key) == nil { defaults.set(value, forKey: key) }
+        }
+        defaults.set(true, forKey: "carriedOverFromSwitcher")
     }
 
     private func save(_ value: some Encodable, _ key: String) {

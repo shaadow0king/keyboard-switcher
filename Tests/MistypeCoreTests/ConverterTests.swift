@@ -1,5 +1,5 @@
 import Testing
-@testable import SwitcherCore
+@testable import MistypeCore
 
 private let words: Set<String> = ["привет", "Привет", "также", "hello"]
 private func isWord(_ s: String, _: Lang) -> Bool { words.contains(s) }

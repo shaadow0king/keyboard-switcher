@@ -1,8 +1,8 @@
 import AppKit
-import SwitcherCore
+import MistypeCore
 
-/// Checks the GitHub repository in Info.plist (SwitcherUpdatesRepo, "owner/name") for a newer release.
-/// Switcher's only network request: one GET to api.github.com, with nothing about the user or their typing.
+/// Checks the GitHub repository in Info.plist (MistypeUpdatesRepo, "owner/name") for a newer release.
+/// Mistype's only network request: one GET to api.github.com, with nothing about the user or their typing.
 /// Installing stays manual: the release page opens and the user downloads the new build.
 // shortcut: no in-place install or signed update feed; upgrade to Sparkle once builds are Developer ID-signed.
 final class Updates: ObservableObject {
@@ -16,7 +16,7 @@ final class Updates: ObservableObject {
     private var timer: Timer?
 
     static var repo: String? {
-        (Bundle.main.object(forInfoDictionaryKey: "SwitcherUpdatesRepo") as? String).flatMap { $0.isEmpty ? nil : $0 }
+        (Bundle.main.object(forInfoDictionaryKey: "MistypeUpdatesRepo") as? String).flatMap { $0.isEmpty ? nil : $0 }
     }
 
     var checksAutomatically: Bool {

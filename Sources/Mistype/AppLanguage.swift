@@ -1,14 +1,14 @@
 import AppKit
 
-/// The interface language: follow macOS, or force English or Russian for Switcher only.
-/// Stored the standard way, as AppleLanguages in Switcher's own defaults; it takes effect on the next launch.
+/// The interface language: follow macOS, or force English or Russian for Mistype only.
+/// Stored the standard way, as AppleLanguages in Mistype's own defaults; it takes effect on the next launch.
 enum AppLanguage: Hashable {
     case system, english, russian
 
     private static let key = "AppleLanguages"
 
     static var current: AppLanguage {
-        // Only Switcher's own domain: UserDefaults.standard would also return the system-wide list.
+        // Only Mistype's own domain: UserDefaults.standard would also return the system-wide list.
         guard let id = Bundle.main.bundleIdentifier,
               let langs = UserDefaults.standard.persistentDomain(forName: id)?[key] as? [String],
               let first = langs.first else { return .system }
@@ -23,7 +23,7 @@ enum AppLanguage: Hashable {
         }
     }
 
-    /// Quits and opens Switcher again. The new copy starts after this one has quit,
+    /// Quits and opens Mistype again. The new copy starts after this one has quit,
     /// so two key taps never run at once.
     static func relaunch() {
         let task = Process()

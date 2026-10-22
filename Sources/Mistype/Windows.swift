@@ -29,15 +29,15 @@ final class AppWindow {
     }
 }
 
-/// S02: explains why Switcher needs Accessibility, opens the right pane, and closes itself once it's granted.
+/// S02: explains why Mistype needs Accessibility, opens the right pane, and closes itself once it's granted.
 enum PermissionWindow {
     static func show(_ app: AppDelegate) {
-        AppWindow.permission.show(title: String(localized: "Switcher Permission")) { PermissionView(app: app) }
+        AppWindow.permission.show(title: String(localized: "Mistype Permission")) { PermissionView(app: app) }
     }
 
     static func close() { AppWindow.permission.close() }
 
-    /// Adds Switcher to the Accessibility list (macOS also shows its own short alert) and opens that pane,
+    /// Adds Mistype to the Accessibility list (macOS also shows its own short alert) and opens that pane,
     /// so the user only has to turn the switch on.
     static func openSettings() {
         AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
@@ -55,21 +55,21 @@ struct PermissionView: View {
                     .font(.system(size: 32))
                     .foregroundStyle(.tint)
                     .accessibilityHidden(true)
-                Text("Switcher needs Accessibility access")
+                Text("Mistype needs to see what you type")
                     .font(.title2.bold())
                     .fixedSize(horizontal: false, vertical: true)
             }
-            Text("To notice a word typed in the wrong layout and retype it, Switcher has to see your key presses. They stay on this Mac: nothing is saved or sent anywhere, and password fields are skipped.")
+            Text("To spot a word typed in the wrong layout and fix it, Mistype watches your key presses. Nothing you type is saved or leaves this Mac, and password fields are skipped.")
                 .fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 6) {
                 Text("1. Click Open System Settings.")
-                Text("2. Turn on Switcher in the list. If it isn't there, click + and choose Switcher.")
+                Text("2. Turn on Mistype in the list. If it isn't there, click + and choose Mistype.")
                 Text("3. Come back: this window closes by itself.")
             }
             .fixedSize(horizontal: false, vertical: true)
             Group {
                 if app.hasPermission {
-                    Label("Switcher is on.", systemImage: "checkmark.circle.fill")
+                    Label("Mistype is on.", systemImage: "checkmark.circle.fill")
                         .symbolRenderingMode(.multicolor)
                 } else {
                     HStack(spacing: 8) {

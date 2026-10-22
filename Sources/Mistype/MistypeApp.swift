@@ -3,7 +3,7 @@ import Carbon.HIToolbox
 import SwiftUI
 
 @main
-struct SwitcherApp: App {
+struct MistypeApp: App {
     @NSApplicationDelegateAdaptor private var app: AppDelegate
 
     var body: some Scene {
@@ -22,16 +22,16 @@ struct MenuBarLabel: View {
     var body: some View {
         if let layout = app.layout {
             Text(verbatim: layout)
-                .accessibilityLabel(Text("Switcher, layout \(layout)"))
+                .accessibilityLabel(Text("Mistype, layout \(layout)"))
         } else {
             Image(systemName: "keyboard")
-                .accessibilityLabel(Text(verbatim: "Switcher"))
+                .accessibilityLabel(Text(verbatim: "Mistype"))
         }
     }
 }
 
 func showSettings() {
-    AppWindow.settings.show(title: String(localized: "Switcher Settings")) { SettingsView(prefs: .shared) }
+    AppWindow.settings.show(title: String(localized: "Mistype Settings")) { SettingsView(prefs: .shared) }
 }
 
 struct MenuView: View {
@@ -43,19 +43,19 @@ struct MenuView: View {
     var body: some View {
         Text(app.status)
         if !app.hasPermission {
-            Button("Grant Permission…") { PermissionWindow.show(app) }
+            Button("Give Permission…") { PermissionWindow.show(app) }
         }
         if case .available(let version) = updates.state {
             Button("Update Available: \(version)…") { updates.openReleasePage() }
         }
-        Text("Convert: \(prefs.hotkey.displayLabel)")
+        Text("Convert key: \(prefs.hotkey.displayLabel)")
         Button("Change Hotkey…") {
             prefs.settingsTab = .hotkeys
             prefs.recording = true
             showSettings()
         }
         Divider()
-        Toggle("Switch layout automatically", isOn: $prefs.autoSwitch)
+        Toggle("Fix the layout as I type", isOn: $prefs.autoSwitch)
         Button("Settings…") { showSettings() }
         Button("Feedback and Ideas…") {
             prefs.settingsTab = .about
@@ -63,7 +63,7 @@ struct MenuView: View {
         }
         .keyboardShortcut(",")
         Divider()
-        Button("Quit Switcher") { NSApp.terminate(nil) }
+        Button("Quit Mistype") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
     }
 }
@@ -114,18 +114,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         if running != hasPermission, running || misses >= 3 || watchdog == nil {
             hasPermission = running
             if running {
-                // Let the "Switcher is on" line show for a moment, then get out of the way.
+                // Let the "Mistype is on" line show for a moment, then get out of the way.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { PermissionWindow.close() }
             } else if watchdog != nil {
                 PermissionWindow.show(self)  // revoked while running
             }
         }
         let new = if !running {
-            String(localized: "Needs Accessibility permission")
+            String(localized: "Needs permission to see typing")
         } else if let owner = Focus.secureInputOwner() {
-            String(localized: "Paused: \(owner) has secure keyboard input on")
+            String(localized: "Paused while \(owner) protects your typing")
         } else {
-            String(localized: "Running")
+            String(localized: "On")
         }
         if status != new { status = new }
     }

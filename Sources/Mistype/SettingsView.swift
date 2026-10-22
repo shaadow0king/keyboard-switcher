@@ -1,6 +1,6 @@
 import ServiceManagement
 import SwiftUI
-import SwitcherCore
+import MistypeCore
 
 /// The settings window: one tab per settings screen.
 struct SettingsView: View {
@@ -43,8 +43,8 @@ struct GeneralTab: View {
 
     var body: some View {
         Form {
-            Toggle("Switch layout automatically", isOn: $prefs.autoSwitch)
-            Toggle("Open Switcher when you log in", isOn: Binding(
+            Toggle("Fix the layout as I type", isOn: $prefs.autoSwitch)
+            Toggle("Open Mistype when you log in", isOn: Binding(
                 get: { loginStatus == .enabled },
                 set: setLaunchAtLogin
             ))
@@ -55,12 +55,12 @@ struct GeneralTab: View {
             }
             .onChange(of: language) { _, new in new.apply() }
             if language != launchedLanguage {
-                LabeledContent("Switcher needs to restart to change the language.") {
+                LabeledContent("Mistype needs to restart to change the language.") {
                     Button("Restart") { AppLanguage.relaunch() }
                 }
             }
             if loginStatus == .requiresApproval {
-                LabeledContent("Allow Switcher in System Settings → General → Login Items.") {
+                LabeledContent("Allow Mistype in System Settings → General → Login Items.") {
                     Button("Open") { SMAppService.openSystemSettingsLoginItems() }
                 }
             }
@@ -210,7 +210,7 @@ struct ExceptionsTab: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Switcher stays off in these apps: no automatic fixes and no hotkey. Handy for terminals, code editors and games.")
+            Text("Mistype stays off in these apps: no automatic fixes and no hotkey. Handy for terminals, code editors and games.")
                 .font(.callout)
                 .fixedSize(horizontal: false, vertical: true)
             List(prefs.exceptions, selection: $selection) { app in

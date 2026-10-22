@@ -1,14 +1,14 @@
 #!/bin/bash
-# Builds build/Switcher.app and signs it with your Apple Development certificate,
+# Builds build/Mistype.app and signs it with your Apple Development certificate,
 # so macOS keeps the Accessibility grant across rebuilds. Override with SIGN_IDENTITY=...
 set -euo pipefail
 cd "$(dirname "$0")"
 
 swift build -c release
-APP=build/Switcher.app
+APP=build/Mistype.app
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
-cp .build/release/Switcher "$APP/Contents/MacOS/"
+cp .build/release/Mistype "$APP/Contents/MacOS/"
 cp Info.plist "$APP/Contents/"
 mkdir -p "$APP/Contents/Resources"
 cp -R Resources/*.lproj "$APP/Contents/Resources/"

@@ -1,11 +1,11 @@
 import AppKit
 import SwiftUI
 
-/// Where people send bug reports and ideas. The address lives in Info.plist (SwitcherFeedbackEmail),
+/// Where people send bug reports and ideas. The address lives in Info.plist (MistypeFeedbackEmail),
 /// so it changes in one place, without touching code.
 enum Feedback {
     static var address: String? {
-        (Bundle.main.object(forInfoDictionaryKey: "SwitcherFeedbackEmail") as? String).flatMap { $0.isEmpty ? nil : $0 }
+        (Bundle.main.object(forInfoDictionaryKey: "MistypeFeedbackEmail") as? String).flatMap { $0.isEmpty ? nil : $0 }
     }
 
     static var version: String {
@@ -19,8 +19,8 @@ enum Feedback {
         mail.scheme = "mailto"
         mail.path = address
         mail.queryItems = [
-            URLQueryItem(name: "subject", value: String(localized: "Switcher \(version): feedback")),
-            URLQueryItem(name: "body", value: "\n\n—\nSwitcher \(version), macOS \(ProcessInfo.processInfo.operatingSystemVersionString)"),
+            URLQueryItem(name: "subject", value: String(localized: "Mistype \(version): feedback")),
+            URLQueryItem(name: "body", value: "\n\n—\nMistype \(version), macOS \(ProcessInfo.processInfo.operatingSystemVersionString)"),
         ]
         if let url = mail.url { NSWorkspace.shared.open(url) }
     }
@@ -41,7 +41,7 @@ struct AboutTab: View {
         Form {
             Section {
                 LabeledContent("Version") { Text(verbatim: Feedback.version).foregroundStyle(.primary) }
-                Text("Free, with no subscription. What you type never leaves this Mac: the only thing Switcher asks the internet is whether a new version is out.")
+                Text("Free. No subscription. Nothing you type leaves this Mac; Mistype only goes online to check for a new version.")
                     .fixedSize(horizontal: false, vertical: true)
             }
             Section("Updates") {

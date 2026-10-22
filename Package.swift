@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "Switcher",
+    name: "Mistype",
     platforms: [.macOS(.v15)],
     targets: [
-        .target(name: "SwitcherCore"),
-        .executableTarget(name: "Switcher", dependencies: ["SwitcherCore"]),
-        .testTarget(name: "SwitcherCoreTests", dependencies: ["SwitcherCore"]),
+        .target(name: "MistypeCore"),
+        .executableTarget(name: "Mistype", dependencies: ["MistypeCore"]),
+        .testTarget(name: "MistypeCoreTests", dependencies: ["MistypeCore"]),
     ],
     swiftLanguageModes: [.v5]
 )

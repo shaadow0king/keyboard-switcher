@@ -1,6 +1,6 @@
 import AppKit
 import Testing
-@testable import SwitcherCore
+@testable import MistypeCore
 
 /// The detector against the real macOS spell checker, the same call the app makes.
 private func isWord(_ text: String, _ lang: Lang) -> Bool {

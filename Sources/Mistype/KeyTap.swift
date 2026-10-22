@@ -1,10 +1,10 @@
 import AppKit
 import Carbon.HIToolbox
 import OSLog
-import SwitcherCore
+import MistypeCore
 
-/// Key codes and events only, never the typed text. Read with: log stream --predicate 'subsystem == "local.switcher"'
-let log = Logger(subsystem: "local.switcher", category: "tap")
+/// Key codes and events only, never the typed text. Read with: log stream --predicate 'subsystem == "io.github.shaadow0king.mistype"'
+let log = Logger(subsystem: "io.github.shaadow0king.mistype", category: "tap")
 
 /// Watches every key press: fixes a word when a space ends it, and runs the convert hotkey.
 final class KeyTap {
