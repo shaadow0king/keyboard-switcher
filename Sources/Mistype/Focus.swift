@@ -24,15 +24,31 @@ enum Focus {
         return subrole as? String == kAXSecureTextFieldSubrole
     }
 
-    /// Whether the focused field has selected text. Right after typing that's an inline autocomplete
+    /// Whether the field being typed into has selected text. Right after typing that's an inline autocomplete
     /// (Spotlight, address bars): the first Delete removes it instead of a letter.
+    /// Spotlight never becomes the frontmost app, so its search field isn't the system's focused element;
+    /// it's asked directly too.
     static func hasSelection() -> Bool {
-        guard let focused = focusedElement() else { return false }
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(focused, kAXSelectedTextRangeAttribute as CFString, &value) == .success,
-              let value, CFGetTypeID(value) == AXValueGetTypeID() else { return false }
-        var range = CFRange()
-        return AXValueGetValue(value as! AXValue, .cfRange, &range) && range.length > 0
+        var fields = [focusedElement()]
+        if let spotlight = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Spotlight").first {
+            let app = AXUIElementCreateApplication(spotlight.processIdentifier)
+            AXUIElementSetMessagingTimeout(app, 0.05)
+            var focused: CFTypeRef?
+            if AXUIElementCopyAttributeValue(app, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
+               let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() {
+                fields.append((focused as! AXUIElement))
+            }
+        }
+        for case let field? in fields {
+            var value: CFTypeRef?
+            let result = AXUIElementCopyAttributeValue(field, kAXSelectedTextRangeAttribute as CFString, &value)
+            var range = CFRange()
+            let selected = result == .success && value.map { CFGetTypeID($0) == AXValueGetTypeID() } == true
+                && AXValueGetValue(value as! AXValue, .cfRange, &range) && range.length > 0
+            log.notice("autocomplete check: result \(result.rawValue), selection \(range.location),\(range.length)")
+            if selected { return true }
+        }
+        return false
     }
 
     private static func focusedElement() -> AXUIElement? {
