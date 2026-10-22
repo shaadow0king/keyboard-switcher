@@ -42,14 +42,18 @@ final class Updates: ObservableObject {
         var request = URLRequest(url: url, timeoutInterval: 20)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         URLSession.shared.dataTask(with: request) { data, response, _ in
-            let release = (response as? HTTPURLResponse)?.statusCode == 200
-                ? data.flatMap { try? JSONDecoder().decode(Release.self, from: $0) } : nil
-            DispatchQueue.main.async { self.finish(release) }
+            let status = (response as? HTTPURLResponse)?.statusCode
+            let release = status == 200 ? data.flatMap { try? JSONDecoder().decode(Release.self, from: $0) } : nil
+            DispatchQueue.main.async { self.finish(release, noReleasesYet: status == 404) }
         }.resume()
     }
 
-    private func finish(_ release: Release?) {
+    private func finish(_ release: Release?, noReleasesYet: Bool) {
         defaults.set(Date(), forKey: "lastUpdateCheck")
+        if noReleasesYet {  // the repository exists but nothing is published yet
+            state = .upToDate
+            return
+        }
         guard let release, let latest = Version(release.tag_name) else {
             state = .failed
             return

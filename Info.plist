@@ -4,16 +4,16 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>Switcher</string>
+	<key>CFBundleIdentifier</key>
+	<string>local.switcher</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
 		<string>ru</string>
 	</array>
-	<key>CFBundleIdentifier</key>
-	<string>local.switcher</string>
 	<key>CFBundleName</key>
-	<string>Switcher</string>
-	<key>CFBundleExecutable</key>
 	<string>Switcher</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
@@ -23,11 +23,11 @@
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
-	<key>SwitcherUpdatesRepo</key>
-	<string></string>
-	<key>SwitcherFeedbackEmail</key>
-	<string></string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>SwitcherFeedbackEmail</key>
+	<string>im.gework@gmail.com</string>
+	<key>SwitcherUpdatesRepo</key>
+	<string>shaadow0king/keyboard-switcher-releases</string>
 </dict>
 </plist>

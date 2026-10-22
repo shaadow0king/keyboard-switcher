@@ -70,7 +70,7 @@ struct AboutTab: View {
                 Text("Found a bug, or missing something? Write to us.")
                     .fixedSize(horizontal: false, vertical: true)
                 if let address = Feedback.address {
-                    LabeledContent("Email") { Text(verbatim: address).textSelection(.enabled) }
+                    LabeledContent("Email") { Text(verbatim: address).textSelection(.enabled).foregroundStyle(.primary) }
                     HStack {
                         Button("Write an Email") { Feedback.compose() }
                         Button(copied ? String(localized: "Copied") : String(localized: "Copy Address")) {
