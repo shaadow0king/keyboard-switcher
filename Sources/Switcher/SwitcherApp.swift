@@ -55,7 +55,7 @@ struct SettingsView: View {
             Text("""
                 Retypes the word you just typed in the other layout, or the selected text. \
                 Press it again to switch back; that also undoes an automatic fix.
-                Use a modifier on its own (right ⌥), a key with ⌘ ⌃ or ⌥, or F1–F19. Esc cancels.
+                Use a modifier on its own (⌥), a key with ⌘ ⌃ or ⌥, or F1–F19. Esc cancels.
                 """)
                 .font(.callout)
                 .foregroundStyle(.secondary)

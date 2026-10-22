@@ -1,14 +1,23 @@
 import AppKit
 import Carbon.HIToolbox
 
-/// A user-chosen key: either a modifier pressed and released alone (right ⌥), or a key with modifiers (⌃⌥Space).
+/// A user-chosen key: either a modifier pressed and released alone (⌥), or a key with modifiers (⌃⌥Space).
 struct Hotkey: Codable, Equatable {
     var keyCode: Int
     var modifiers: UInt64  // CGEventFlags raw value, only for key combos
     var modifierOnly: Bool
     var label: String
+    /// A modifier-only hotkey that fires from the left or the right key. Optional so older saved hotkeys still decode.
+    var anySide: Bool?
 
-    static let rightOption = Hotkey(keyCode: kVK_RightOption, modifiers: 0, modifierOnly: true, label: "Right ⌥")
+    static let option = Hotkey(keyCode: kVK_Option, modifiers: 0, modifierOnly: true, label: "⌥ (left or right)", anySide: true)
+
+    /// Whether releasing modifier `key` alone fires this hotkey.
+    func matchesModifier(_ key: Int) -> Bool {
+        guard modifierOnly else { return false }
+        if key == keyCode { return true }
+        return anySide == true && Self.modifierKeys[key]?.flag == Self.modifierKeys[keyCode]?.flag
+    }
 
     /// Flags that count for matching; Caps Lock and the rest are ignored.
     static let modifierMask: CGEventFlags = [.maskCommand, .maskControl, .maskAlternate, .maskShift]
@@ -73,6 +82,6 @@ final class Prefs: ObservableObject {
 
     private init() {
         autoSwitch = defaults.object(forKey: "autoSwitch") as? Bool ?? true
-        hotkey = defaults.data(forKey: "convertHotkey").flatMap { try? JSONDecoder().decode(Hotkey.self, from: $0) } ?? .rightOption
+        hotkey = defaults.data(forKey: "convertHotkey").flatMap { try? JSONDecoder().decode(Hotkey.self, from: $0) } ?? .option
     }
 }

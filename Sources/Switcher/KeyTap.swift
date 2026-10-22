@@ -105,7 +105,7 @@ final class KeyTap {
             if prefs.recording {
                 prefs.hotkey = Hotkey(keyCode: key, modifiers: 0, modifierOnly: true, label: modifier.label)
                 prefs.recording = false
-            } else if prefs.hotkey.modifierOnly, prefs.hotkey.keyCode == key {
+            } else if prefs.hotkey.matchesModifier(key) {
                 convert()
             }
         } else {
