@@ -51,9 +51,9 @@ struct PermissionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
-                Image(systemName: "keyboard")
-                    .font(.system(size: 32))
-                    .foregroundStyle(.tint)
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 48, height: 48)
                     .accessibilityHidden(true)
                 Text("Mistype needs to see what you type")
                     .font(.title2.bold())

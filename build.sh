@@ -17,6 +17,7 @@ cp "$BIN" "$APP/Contents/MacOS/"
 cp Info.plist "$APP/Contents/"
 mkdir -p "$APP/Contents/Resources"
 cp -R Resources/*.lproj "$APP/Contents/Resources/"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 
 # The dev identity is remembered in .sign-identity (not committed): switching certificates makes macOS drop the grant.
 # A SIGN_IDENTITY passed in (release.sh) is used for this build only and never replaces it.
