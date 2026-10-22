@@ -1,5 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
+import SwitcherCore
 
 /// A user-chosen key: either a modifier pressed and released alone (⌥), or a key with modifiers (⌃⌥Space).
 struct Hotkey: Codable, Equatable {
@@ -68,8 +69,8 @@ struct Hotkey: Codable, Equatable {
 
 /// Settings, saved in UserDefaults. Read by the key tap on the main thread.
 final class Prefs: ObservableObject {
-    static let shared = Prefs()
-    private let defaults = UserDefaults.standard
+    static let shared = Prefs(defaults: .standard)
+    private let defaults: UserDefaults
 
     @Published var autoSwitch: Bool {
         didSet { defaults.set(autoSwitch, forKey: "autoSwitch") }
@@ -80,9 +81,19 @@ final class Prefs: ObservableObject {
     /// While true, the next hotkey-worthy key press becomes the hotkey instead of acting.
     @Published var recording = false
     @Published var settingsTab = SettingsTab.general
+    @Published var rules: [Rule] {
+        didSet { save(rules, "rules") }
+    }
 
-    private init() {
+    /// Another `defaults` only for snapshots, so they never touch the user's settings.
+    init(defaults: UserDefaults) {
+        self.defaults = defaults
         autoSwitch = defaults.object(forKey: "autoSwitch") as? Bool ?? true
         hotkey = defaults.data(forKey: "convertHotkey").flatMap { try? JSONDecoder().decode(Hotkey.self, from: $0) } ?? .option
+        rules = defaults.data(forKey: "rules").flatMap { try? JSONDecoder().decode([Rule].self, from: $0) } ?? []
+    }
+
+    private func save(_ value: some Encodable, _ key: String) {
+        defaults.set(try? JSONEncoder().encode(value), forKey: key)
     }
 }

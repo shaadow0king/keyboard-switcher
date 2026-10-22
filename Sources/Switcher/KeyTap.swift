@@ -143,7 +143,7 @@ final class KeyTap {
             typed.backspace()
             return event
         case kVK_Space:
-            guard let ended = typed.space(), prefs.autoSwitch,
+            guard let ended = typed.space(), prefs.autoSwitch, !prefs.rules.block(ended),
                   let fixed = Detector.fix(ended, isWord: Spelling.isWord) else { return event }
             Typist.replace(count: ended.count, with: fixed + " ")
             typed.replaceTarget(with: fixed)

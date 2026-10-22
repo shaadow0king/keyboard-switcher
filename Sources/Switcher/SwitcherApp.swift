@@ -50,6 +50,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var watchdog: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if let i = CommandLine.arguments.firstIndex(of: "--snapshot"), i + 1 < CommandLine.arguments.count {
+            Snapshot.run(to: URL(fileURLWithPath: CommandLine.arguments[i + 1]))
+            exit(0)
+        }
         // Ask once; after that the watchdog starts the tap when permission arrives.
         AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
         checkPermission()
