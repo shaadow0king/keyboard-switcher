@@ -25,7 +25,7 @@ struct MenuView: View {
 
     var body: some View {
         Text(app.status)
-        Text("Convert: \(prefs.hotkey.label)")
+        Text("Convert: \(prefs.hotkey.displayLabel)")
         Button("Change Hotkey…") {
             prefs.settingsTab = .hotkeys
             prefs.recording = true
@@ -46,7 +46,7 @@ struct MenuView: View {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-    @Published var status = "Starting…"
+    @Published var status = String(localized: "Starting…")
     private var watchdog: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -70,7 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private func checkPermission() {
         let running = AXIsProcessTrusted() && KeyTap.shared.start()
         if !running { KeyTap.shared.stop() }
-        let new = running ? "Running" : "Needs Accessibility permission"
+        let new = running ? String(localized: "Running") : String(localized: "Needs Accessibility permission")
         if status != new { status = new }
     }
 }

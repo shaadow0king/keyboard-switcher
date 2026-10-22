@@ -10,6 +10,8 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 cp .build/release/Switcher "$APP/Contents/MacOS/"
 cp Info.plist "$APP/Contents/"
+mkdir -p "$APP/Contents/Resources"
+cp -R Resources/*.lproj "$APP/Contents/Resources/"
 
 # The identity is remembered in .sign-identity (not committed): switching certificates makes macOS drop the grant.
 [ -f .sign-identity ] && SIGN_IDENTITY="${SIGN_IDENTITY:-$(cat .sign-identity)}"

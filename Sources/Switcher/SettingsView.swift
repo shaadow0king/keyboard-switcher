@@ -14,15 +14,9 @@ struct SettingsView: View {
             RulesTab(prefs: prefs)
                 .tabItem { Label("Rules", systemImage: "text.badge.xmark") }
                 .tag(SettingsTab.rules)
-            ExceptionsTab(prefs: prefs)
-                .tabItem { Label("Apps", systemImage: "app.badge") }
-                .tag(SettingsTab.exceptions)
             HotkeysTab(prefs: prefs)
                 .tabItem { Label("Hotkeys", systemImage: "command") }
                 .tag(SettingsTab.hotkeys)
-            SoundsTab()
-                .tabItem { Label("Sounds", systemImage: "speaker.wave.2") }
-                .tag(SettingsTab.sounds)
         }
         .frame(width: 520, height: 380)
         .onDisappear { prefs.recording = false }
@@ -30,7 +24,7 @@ struct SettingsView: View {
 }
 
 enum SettingsTab: Hashable {
-    case general, rules, exceptions, hotkeys, sounds
+    case general, rules, hotkeys
 }
 
 struct GeneralTab: View {
@@ -38,6 +32,8 @@ struct GeneralTab: View {
     /// Read from the system each time: the user can also change it in System Settings → Login Items.
     @State private var loginStatus = SMAppService.mainApp.status
     @State private var loginError: String?
+    @State private var language = AppLanguage.current
+    private let launchedLanguage = AppLanguage.current
 
     var body: some View {
         Form {
@@ -46,6 +42,17 @@ struct GeneralTab: View {
                 get: { loginStatus == .enabled },
                 set: setLaunchAtLogin
             ))
+            Picker("Language", selection: $language) {
+                Text("Same as macOS").tag(AppLanguage.system)
+                Text(verbatim: "English").tag(AppLanguage.english)
+                Text(verbatim: "Русский").tag(AppLanguage.russian)
+            }
+            .onChange(of: language) { _, new in new.apply() }
+            if language != launchedLanguage {
+                LabeledContent("Switcher needs to restart to change the language.") {
+                    Button("Restart") { AppLanguage.relaunch() }
+                }
+            }
             if loginStatus == .requiresApproval {
                 LabeledContent("Allow Switcher in System Settings → General → Login Items.") {
                     Button("Open") { SMAppService.openSystemSettingsLoginItems() }
@@ -65,7 +72,7 @@ struct GeneralTab: View {
             if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
             loginError = nil
         } catch {
-            loginError = "Couldn't change this: \(error.localizedDescription)"
+            loginError = String(localized: "Couldn't change this: \(error.localizedDescription)")
         }
         loginStatus = SMAppService.mainApp.status
     }
@@ -90,9 +97,9 @@ struct RulesTab: View {
                     Text(rule.text).lineLimit(1).truncationMode(.middle).help(rule.text)
                 }
                 TableColumn("Match") { $rule in Text(rule.match.label) }
-                    .width(90)
-                TableColumn("Aa") { $rule in Text(rule.caseSensitive ? "Exact case" : "Any case") }
-                    .width(80)
+                    .width(min: 90, ideal: 110)
+                TableColumn("Aa") { $rule in rule.caseSensitive ? Text("Exact case") : Text("Any case") }
+                    .width(min: 80, ideal: 130)
             }
             .contextMenu(forSelectionType: Rule.ID.self) { ids in
                 Button("Edit…") { edit(ids) }.disabled(ids.count != 1)
@@ -170,7 +177,7 @@ struct RuleEditor: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
             ToolbarItem(placement: .confirmationAction) {
-                Button(isNew ? "Add" : "Save") {
+                Button(isNew ? String(localized: "Add") : String(localized: "Save")) {
                     rule.text = trimmed
                     save(rule)
                     dismiss()
@@ -184,66 +191,10 @@ struct RuleEditor: View {
 extension Rule.Match {
     var label: String {
         switch self {
-        case .whole: "Whole word"
-        case .prefix: "Starts with"
-        case .contains: "Contains"
+        case .whole: String(localized: "Whole word")
+        case .prefix: String(localized: "Starts with")
+        case .contains: String(localized: "Contains")
         }
-    }
-}
-
-struct ExceptionsTab: View {
-    @ObservedObject var prefs: Prefs
-    @State private var selection = Set<AppException.ID>()
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Switcher stays off in these apps: no automatic fixes and no hotkey. Handy for terminals, code editors and games.")
-                .font(.callout)
-                .fixedSize(horizontal: false, vertical: true)
-            List(prefs.exceptions, selection: $selection) { app in
-                HStack {
-                    Image(nsImage: NSWorkspace.shared.icon(forFile: app.path))
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                        .accessibilityHidden(true)
-                    Text(app.name).lineLimit(1).truncationMode(.middle).help(app.bundleID)
-                }
-            }
-            .onDeleteCommand { remove() }
-            .overlay {
-                if prefs.exceptions.isEmpty {
-                    ContentUnavailableView("No apps yet", systemImage: "app.dashed",
-                        description: Text("Add an app where switching gets in the way."))
-                }
-            }
-            HStack(spacing: 0) {
-                Button(action: add) { Image(systemName: "plus") }
-                    .accessibilityLabel("Add app")
-                Button(action: remove) { Image(systemName: "minus") }
-                    .accessibilityLabel("Remove app")
-                    .disabled(selection.isEmpty)
-            }
-            .buttonStyle(.bordered)
-        }
-        .padding()
-    }
-
-    private func add() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.application]
-        panel.directoryURL = URL(fileURLWithPath: "/Applications")
-        panel.allowsMultipleSelection = true
-        panel.prompt = "Add"
-        guard panel.runModal() == .OK else { return }
-        for app in panel.urls.compactMap(AppException.init(url:))
-        where !prefs.exceptions.contains(where: { $0.bundleID == app.bundleID }) {
-            prefs.exceptions.append(app)
-        }
-    }
-
-    private func remove() {
-        prefs.exceptions.removeAll { selection.contains($0.id) }
-        selection.removeAll()
     }
 }
 
@@ -254,10 +205,10 @@ struct HotkeysTab: View {
         Form {
             LabeledContent("Convert") {
                 HStack {
-                    Text(prefs.recording ? "Press a key…" : prefs.hotkey.label)
+                    Text(prefs.recording ? String(localized: "Press a key…") : prefs.hotkey.displayLabel)
                         .italic(prefs.recording)
                         .foregroundStyle(.primary)  // LabeledContent dims values; this one must be readable
-                    Button(prefs.recording ? "Cancel" : "Change…") { prefs.recording.toggle() }
+                    Button(prefs.recording ? String(localized: "Cancel") : String(localized: "Change…")) { prefs.recording.toggle() }
                 }
             }
             Text("""
@@ -269,20 +220,5 @@ struct HotkeysTab: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .formStyle(.grouped)
-    }
-}
-
-struct SoundsTab: View {
-    var body: some View {
-        NotBuiltYet(what: "Sounds for switching and fixes")
-    }
-}
-
-/// Placeholder for a screen that isn't built yet.
-struct NotBuiltYet: View {
-    let what: String
-
-    var body: some View {
-        ContentUnavailableView(what, systemImage: "hammer", description: Text("Not built yet."))
     }
 }

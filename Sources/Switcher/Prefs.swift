@@ -13,6 +13,9 @@ struct Hotkey: Codable, Equatable {
 
     static let option = Hotkey(keyCode: kVK_Option, modifiers: 0, modifierOnly: true, label: "⌥ (left or right)", anySide: true)
 
+    /// `label` is saved in English (or with key names in the language it was recorded in); this is what's shown.
+    var displayLabel: String { Bundle.main.localizedString(forKey: label, value: nil, table: nil) }
+
     /// Whether releasing modifier `key` alone fires this hotkey.
     func matchesModifier(_ key: Int) -> Bool {
         guard modifierOnly else { return false }
@@ -46,7 +49,7 @@ struct Hotkey: Codable, Equatable {
         if flags.contains(.maskAlternate) { label += "⌥" }
         if flags.contains(.maskShift) { label += "⇧" }
         if flags.contains(.maskCommand) { label += "⌘" }
-        label += keyNames[keyCode] ?? NSEvent(cgEvent: event)?.charactersIgnoringModifiers?.uppercased() ?? "#\(keyCode)"
+        label += keyNames[keyCode].map { Bundle.main.localizedString(forKey: $0, value: nil, table: nil) } ?? NSEvent(cgEvent: event)?.charactersIgnoringModifiers?.uppercased() ?? "#\(keyCode)"
         return Hotkey(keyCode: keyCode, modifiers: flags.rawValue, modifierOnly: false, label: label)
     }
 
@@ -67,20 +70,6 @@ struct Hotkey: Codable, Equatable {
     ]
 }
 
-struct AppException: Codable, Identifiable, Equatable {
-    var id: String { bundleID }
-    var bundleID: String
-    var name: String
-    var path: String  // for the icon; the app may have moved since
-
-    init?(url: URL) {
-        guard let bundle = Bundle(url: url), let id = bundle.bundleIdentifier else { return nil }
-        bundleID = id
-        name = FileManager.default.displayName(atPath: url.path).replacingOccurrences(of: ".app", with: "")
-        path = url.path
-    }
-}
-
 /// Settings, saved in UserDefaults. Read by the key tap on the main thread.
 final class Prefs: ObservableObject {
     static let shared = Prefs(defaults: .standard)
@@ -98,10 +87,6 @@ final class Prefs: ObservableObject {
     @Published var rules: [Rule] {
         didSet { save(rules, "rules") }
     }
-    /// Apps where Switcher does nothing at all: no auto-fix, no hotkey.
-    @Published var exceptions: [AppException] {
-        didSet { save(exceptions, "exceptions") }
-    }
 
     /// Another `defaults` only for snapshots, so they never touch the user's settings.
     init(defaults: UserDefaults) {
@@ -109,7 +94,6 @@ final class Prefs: ObservableObject {
         autoSwitch = defaults.object(forKey: "autoSwitch") as? Bool ?? true
         hotkey = defaults.data(forKey: "convertHotkey").flatMap { try? JSONDecoder().decode(Hotkey.self, from: $0) } ?? .option
         rules = defaults.data(forKey: "rules").flatMap { try? JSONDecoder().decode([Rule].self, from: $0) } ?? []
-        exceptions = defaults.data(forKey: "exceptions").flatMap { try? JSONDecoder().decode([AppException].self, from: $0) } ?? []
     }
 
     private func save(_ value: some Encodable, _ key: String) {

@@ -20,13 +20,9 @@ final class KeyTap {
     /// A modifier pressed with nothing else held; it fires as a hotkey if released before any other key.
     private var pendingModifier: Int?
     private let prefs = Prefs.shared
-    /// Kept up to date by a workspace notification, so the tap never asks AppKit per key press.
-    private var frontmost = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
     private var appObserver: NSObjectProtocol?
 
     var isRunning: Bool { tap != nil }
-
-    private var isExcepted: Bool { prefs.exceptions.contains { $0.bundleID == frontmost } }
 
     func start() -> Bool {
         if tap != nil { return true }
@@ -57,10 +53,8 @@ final class KeyTap {
         }
         appObserver = appObserver ?? NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
-        ) { [weak self] note in
-            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
-            self?.frontmost = app?.bundleIdentifier
-            self?.typed.reset()  // the cursor is somewhere else now
+        ) { [weak self] _ in
+            self?.typed.reset()  // another app is frontmost: the cursor is somewhere else now
         }
         log.notice("tap started, hotkey=\(self.prefs.hotkey.label)")
         // Load both dictionaries now: a slow first lookup inside the tap gets the tap disabled.
@@ -92,15 +86,11 @@ final class KeyTap {
             typed.reset()
             return event
         case .flagsChanged:
-            if !isExcepted || prefs.recording { flagsChanged(event) }
+            flagsChanged(event)
             return event
         case .keyDown:
             pendingModifier = nil
             if event.getIntegerValueField(.eventSourceUserData) == Self.marker { return event }
-            if isExcepted && !prefs.recording {
-                typed.reset()
-                return event
-            }
             return keyDown(event)
         default:
             pendingModifier = nil

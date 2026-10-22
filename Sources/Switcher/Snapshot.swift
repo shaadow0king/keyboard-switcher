@@ -29,11 +29,6 @@ enum Snapshot {
             Rule(text: String(repeating: "verylongword", count: 5)),  // 60 characters
         ]
         shot("S04-rules-filled", .rules)
-        shot("S06-apps-empty", .exceptions)
-        prefs.exceptions = ["/System/Applications/Utilities/Terminal.app", "/System/Applications/TextEdit.app"]
-            .compactMap { AppException(url: URL(fileURLWithPath: $0)) }
-        shot("S06-apps-filled", .exceptions)
-        shot("S10-sounds", .sounds)
     }
 
     private static func save(_ view: some View, _ name: String, _ look: NSAppearance.Name, _ dir: URL) {
