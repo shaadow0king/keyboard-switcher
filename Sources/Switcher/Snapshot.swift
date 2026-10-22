@@ -19,6 +19,13 @@ enum Snapshot {
             }
         }
 
+        let app = AppDelegate()
+        for (name, granted) in [("S02-permission-waiting", false), ("S02-permission-granted", true)] {
+            app.hasPermission = granted
+            for (suffix, look) in [("", NSAppearance.Name.aqua), ("-dark", .darkAqua)] {
+                save(PermissionView(app: app), name + suffix, look, dir)
+            }
+        }
         shot("S03-general", .general)
         shot("S07-hotkeys", .hotkeys)
         shot("S04-rules-empty", .rules)

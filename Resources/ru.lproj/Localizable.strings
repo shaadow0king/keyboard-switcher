@@ -57,3 +57,14 @@
 "Restart" = "Перезапустить";
 "Switcher, layout %@" = "Switcher, раскладка %@";
 "Paused: %@ has secure keyboard input on" = "Пауза: в %@ включена защита ввода с клавиатуры";
+"Switcher Permission" = "Разрешение Switcher";
+"Switcher needs Accessibility access" = "Switcher нужен «Универсальный доступ»";
+"To notice a word typed in the wrong layout and retype it, Switcher has to see your key presses. They stay on this Mac: nothing is saved or sent anywhere, and password fields are skipped." = "Чтобы заметить слово, набранное не в той раскладке, и перепечатать его, Switcher должен видеть нажатия клавиш. Они не покидают этот Mac: ничего не сохраняется и никуда не отправляется, а поля паролей пропускаются.";
+"1. Click Open System Settings." = "1. Нажмите «Открыть Системные настройки».";
+"2. Turn on Switcher in the list. If it isn't there, click + and choose Switcher." = "2. Включите Switcher в списке. Если его там нет, нажмите + и выберите Switcher.";
+"3. Come back: this window closes by itself." = "3. Возвращайтесь: это окно закроется само.";
+"Switcher is on." = "Switcher включён.";
+"Waiting for permission…" = "Ждём разрешения…";
+"Later" = "Позже";
+"Open System Settings" = "Открыть Системные настройки";
+"Grant Permission…" = "Выдать разрешение…";

@@ -43,6 +43,9 @@ struct MenuView: View {
 
     var body: some View {
         Text(app.status)
+        if !app.hasPermission {
+            Button("Grant Permission…") { PermissionWindow.shared.show(app) }
+        }
         Text("Convert: \(prefs.hotkey.displayLabel)")
         Button("Change Hotkey…") {
             prefs.settingsTab = .hotkeys
@@ -65,6 +68,7 @@ struct MenuView: View {
 
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     @Published var status = String(localized: "Starting…")
+    @Published var hasPermission = false
     /// "RU" / "EN", or nil for any other layout.
     @Published var layout = Layouts.currentCode()
     private var layoutObserver: NSObjectProtocol?
@@ -81,9 +85,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         ) { [weak self] _ in
             self?.layout = Layouts.currentCode()
         }
-        // Ask once; after that the watchdog starts the tap when permission arrives.
-        AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
         checkPermission()
+        // Our own window instead of the bare system prompt: it says why, and closes when granted.
+        if !hasPermission { PermissionWindow.shared.show(self) }
         // Also stops the tap within half a second if permission is revoked while running.
         watchdog = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             self?.checkPermission()
@@ -97,6 +101,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private func checkPermission() {
         let running = AXIsProcessTrusted() && KeyTap.shared.start()
         if !running { KeyTap.shared.stop() }
+        if running != hasPermission {
+            hasPermission = running
+            if running {
+                // Let the "Switcher is on" line show for a moment, then get out of the way.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { PermissionWindow.shared.close() }
+            } else if watchdog != nil {
+                PermissionWindow.shared.show(self)  // revoked while running
+            }
+        }
         let new = if !running {
             String(localized: "Needs Accessibility permission")
         } else if let owner = Focus.secureInputOwner() {
